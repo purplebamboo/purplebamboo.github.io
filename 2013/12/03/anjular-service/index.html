@@ -1,0 +1,578 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>anjular-service | blog of purplebamboo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
+    
+    <meta name="author" content="purplebamboo">
+    
+    <meta name="description" content="首先说下service的定义，service是用来定义一些通用的处理方法的。使用dependency injection (DI)也就是angular的注入器来生成一些服务对象。
+service可以做什么？，比如我们需要一个号码验证的功能，我就可以专门做个service。之后通过service来调这">
+    
+    
+    
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/pacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/pacman.jpg">
+    
+    <link rel="stylesheet" href="/css/style.css" type="text/css">
+</head>
+
+  <body>
+    <header>
+      <div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.svg" alt="blog of purplebamboo" title="blog of purplebamboo"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="blog of purplebamboo">blog of purplebamboo</a></h1>
+				<h2 class="blog-motto">dota诚可贵，coding价更高，若为女朋友，二者皆可抛。</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">首页</a></li>
+					
+						<li><a href="/archives">归档</a></li>
+					
+						<li><a href="/categories">分类</a></li>
+					
+						<li><a href="/about">关于</a></li>
+					
+					<li>
+					
+					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="text" id="search" name="q" autocomplete="off" maxlength="20" placeholder="搜索" />
+						<input type="hidden" name="q" value="site:purplebamboo.github.com">
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2013/12/03/anjular-service/" title="anjular-service" itemprop="url">anjular-service</a>
+  </h1>
+  <p class="article-author">By
+    
+      <a href="http://purplebamboo.github.com" title="purplebamboo">purplebamboo</a>
+    </p>
+  <p class="article-time">
+    <time datetime="2013-12-03T08:45:09.000Z" itemprop="datePublished">12月 3 2013</time>
+    更新日期:<time datetime="2014-08-20T23:19:05.000Z" itemprop="dateModified">8月 21 2014</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		<ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#provider"><span class="toc-number">1.</span> <span class="toc-text">provider</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#factory"><span class="toc-number">2.</span> <span class="toc-text">factory</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#service"><span class="toc-number">3.</span> <span class="toc-text">service</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#value与constant"><span class="toc-number">4.</span> <span class="toc-text">value与constant</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#结语"><span class="toc-number">5.</span> <span class="toc-text">结语</span></a></li></ol>
+		</div>
+		
+		<p>首先说下service的定义，service是用来定义一些通用的处理方法的。使用dependency injection (DI)也就是angular的注入器来生成一些服务对象。</p>
+<p>service可以做什么？，比如我们需要一个号码验证的功能，我就可以专门做个service。之后通过service来调这个通用方法。<br>service有两个特性：</p>
+<ol>
+<li>它是通过依赖注入的方式实例化的，是懒加载的，只有依赖了它，它才会加载。</li>
+<li>他是单例的，也就是说他只会执行一次，通过这个特性我们可以存储一些全局的对象。</li>
+</ol>
+<blockquote>
+<p>单例是一种设计模式，不是很清楚的童鞋自行百度。</p>
+</blockquote>
+<p>先看下service的基本用法：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+</pre></td><td class="code"><pre><span class="keyword">var</span> app = angular.module(<span class="string">'myServiceModule'</span>, []);
+app.factory(<span class="string">'test'</span>, [<span class="string">'$window'</span>, <span class="function"><span class="keyword">function</span><span class="params">(win)</span> {</span>
+    <span class="keyword">return</span> {text:<span class="string">'hello world'</span>};
+}]);
+app.controller(<span class="string">'MyController'</span>, [<span class="string">'$scope'</span>,<span class="string">'test'</span>, <span class="function"><span class="keyword">function</span> <span class="params">(<span class="variable">$scope</span>, test)</span> {</span>
+    <span class="variable">$scope</span>.text = test;
+}]);
+</pre></td></tr></table></figure>
+
+<p>我们通过factory方法定义一个service。angular的$inject(注入器)会在你下面MyController执行时，调用这个工厂方法返回<code>{text:&#39;hello world&#39;}</code>,要注意这个工厂方法只会调用一次，单例嘛。之后我们就可以在controller里面使用了。</p>
+<p>app，也就是模块的实例化对象不只是有factory一个方法来实现service的定义。真正说起来有下面这些：</p>
+<ul>
+<li>provider(provider) - registers a service provider with the $injector</li>
+<li>constant(obj) - registers a value/object that can be accessed by providers and  services.</li>
+<li>value(obj) - registers a value/object that can only be accessed by services, not providers.</li>
+<li>factory(fn) - registers a service factory function, fn, that will be wrapped in a service provider object, whose $get property will contain the given factory function.</li>
+<li>service(class) - registers a constructor function, class that will be wrapped in a service provider object, whose $get property will instantiate a new object using the given constructor function.</li>
+</ul>
+<p>这是直接拿的官网的，下面一个个解释下：</p>
+<h3 id="provider">provider</h3>
+<p>这个是最底层的实现方式，实际上，其他的写法都是基于这个改写的。我们先看下它的定义service的方式。</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+</pre></td><td class="code"><pre><span class="comment">//定义service:</span>
+app.provider(<span class="string">'test'</span>, {
+    world: <span class="string">'hello world'</span>,
+    <span class="variable">$get</span>: <span class="function"><span class="keyword">function</span><span class="params">()</span> {</span>
+      <span class="keyword">return</span> {text:world}
+    }
+});
+<span class="comment">//或</span>
+app.provider(<span class="string">'test'</span>, <span class="function"><span class="keyword">function</span><span class="params">()</span>{</span>
+    this.world = <span class="string">'hello world'</span>;
+    this.<span class="variable">$get</span> = <span class="function"><span class="keyword">function</span><span class="params">()</span> {</span>
+      <span class="keyword">return</span> {text:world}
+    }
+});
+
+app.controller(<span class="string">'MyController'</span>, [<span class="string">'$scope'</span>,<span class="string">'test'</span>, <span class="function"><span class="keyword">function</span> <span class="params">(<span class="variable">$scope</span>, test)</span> {</span>
+    <span class="variable">$scope</span>.text = test;
+}]);
+</pre></td></tr></table></figure>
+
+<p>方法<code>provider(name, provider);</code>，provider可以是对象，也可以是构造函数。是构造函数的话，angular的注入器会自动帮你实例化成对象。</p>
+<p>当下面MyController执行时，注入器会调用$get方法。获取到返回值赋值给你注入的对象test。</p>
+<p>注意的是，$get是运行时才会执行的方法，也就是说，在模块没有加载完毕时service是不可使用的。module有个方法是config，用来在模块运行前配置东西。所以使用provider有个好处是在config的时候可以使用。</p>
+<h3 id="factory">factory</h3>
+<p>这个方法就是我们上面提到的,调用方法:</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+</pre></td><td class="code"><pre><span class="keyword">var</span> app = angular.module(<span class="string">'myServiceModule'</span>, []);
+app.factory(<span class="string">'test'</span>, <span class="function"><span class="keyword">function</span><span class="params">()</span> {</span>
+    <span class="keyword">return</span> {text:<span class="string">'hello world'</span>};
+});
+app.controller(<span class="string">'MyController'</span>, [<span class="string">'$scope'</span>,<span class="string">'test'</span>, <span class="function"><span class="keyword">function</span> <span class="params">(<span class="variable">$scope</span>, test)</span> {</span>
+    <span class="variable">$scope</span>.text = test;
+}]);
+</pre></td></tr></table></figure>
+
+<p>方法<code>factory(name, factoryFunction);</code>,factoryFunction是个工厂方法，service实例化时会调用。</p>
+<p>它是provider的一个变种,实现大致为：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+</pre></td><td class="code"><pre>app.factory = <span class="function"><span class="keyword">function</span><span class="params">(name,factoryFunction)</span>{</span>
+    app.provider(<span class="string">'name'</span>, {
+        <span class="variable">$get</span>:factoryFunction
+    });
+
+}
+</pre></td></tr></table></figure>
+
+<p>angular会自动创建个空的provider对象，将functionFactory赋值给$get。</p>
+<h3 id="service">service</h3>
+<p>service方法<code>service(name, constructor);</code>constructor是个构造函数，angular会自动调用new constructor（），实例化这个对象。</p>
+<p>使用如下：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+</pre></td><td class="code"><pre><span class="keyword">var</span> app = angular.module(<span class="string">'myServiceModule'</span>, []);
+app.service(<span class="string">'test'</span>, <span class="function"><span class="keyword">function</span><span class="params">()</span> {</span>
+    this.text = <span class="string">'hello world'</span>;
+});
+app.controller(<span class="string">'MyController'</span>, [<span class="string">'$scope'</span>,<span class="string">'test'</span>, <span class="function"><span class="keyword">function</span> <span class="params">(<span class="variable">$scope</span>, test)</span> {</span>
+    <span class="variable">$scope</span>.text = test;
+}]);
+</pre></td></tr></table></figure>
+
+<p>实现的思路大概是:</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+</pre></td><td class="code"><pre>app.service = <span class="function"><span class="keyword">function</span><span class="params">(name, constructor)</span>{</span>
+    
+    app.factory(name,<span class="function"><span class="keyword">function</span><span class="params">()</span>{</span>
+        <span class="keyword">return</span> <span class="keyword">new</span> constructor();
+    })
+}
+</pre></td></tr></table></figure>
+
+<p>这么一看就清楚多了，显然service就是一个factory的再封装。与factory的区别就是，factory可以定义自己返回的服务对象的类型，可以是函数，可以是值等等。而service只能是返回的对象。</p>
+<h3 id="value与constant">value与constant</h3>
+<p>value，见名知意，就是用来直接返回一个值，连service的construct都省了。用法也很简单：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+</pre></td><td class="code"><pre>app.value(<span class="string">'test'</span>, {text:<span class="string">'hello world'</span>});
+<span class="comment">//大概的实现为：</span>
+app.value = <span class="function"><span class="keyword">function</span><span class="params">(name,val)</span>{</span>
+    app.factory(name,<span class="function"><span class="keyword">function</span><span class="params">()</span>{</span>
+        <span class="keyword">return</span> val;
+    })
+}
+</pre></td></tr></table></figure>
+
+<p>可以看到，基本上都是建立在provider的基础上实现的。<br>而且都是通过调用provider的$get实现的，这边有个问题就是由于$get是运行时才会调用，所以上面所有的service，在模块没有加载前都是不能访问到的。</p>
+<p>不过与此对应的constant方法，也是用来定值的，与value有两个区别。</p>
+<ul>
+<li>constant用来定义常量，后面不可以修改。</li>
+<li>constant可以在模块没有加载完毕前使用，比如模块的config方法。</li>
+</ul>
+<h3 id="结语">结语</h3>
+<p>可以看到service的配置方式非常灵活，其实这些方法是定义在一个叫做$provider的对象上的，模块的实例化对象上面的provider，factory等等方法都是对$provider的方法的引用。$provider不仅仅提供service的定义方式，实际上还可以定义其他的controller，directive等等等。<br>本来还想写个angular的模块的介绍的，但是模块没啥太多东西，推荐看这篇文章就好了。<br><code>http://www.angularjs.cn/A00x</code><br>或者直接看官方英文版的<code>https://docs.angularjs.org/guide/module</code><br>基本来说angular里面的概念都介绍了一遍了。这个系列就这样告一段落了。之后可能会再写一些单独的细节点的介绍，原理等等，有空再看看国内的jsgen的实现方式。to be continue。。。</p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/angular/">angular</a><a href="/tags/service/">service</a>
+  </div>
+
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/angularjs记录/">angularjs记录</a>
+</div>
+
+
+
+<div class="article-share" id="share">
+
+  <div data-url="http://purplebamboo.github.com/2013/12/03/anjular-service/" data-title="anjular-service | blog of purplebamboo" data-tsina="null" class="share clearfix">
+  </div>
+
+</div>
+</footer>   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2014/01/09/iconfont/" title="iconfont 记录">
+  <strong>PREVIOUS:</strong><br/>
+  <span>
+  iconfont 记录</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2013/11/05/angularjs-templete/"  title="angular模板简介">
+ <strong>NEXT:</strong><br/> 
+ <span>angular模板简介
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section class="comment">
+	<div class="ds-thread"></div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+  <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#provider"><span class="toc-number">1.</span> <span class="toc-text">provider</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#factory"><span class="toc-number">2.</span> <span class="toc-text">factory</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#service"><span class="toc-number">3.</span> <span class="toc-text">service</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#value与constant"><span class="toc-number">4.</span> <span class="toc-text">value与constant</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#结语"><span class="toc-number">5.</span> <span class="toc-text">结语</span></a></li></ol>
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+			<li><a href="/categories/angularjs记录/" title="angularjs记录">angularjs记录<sup>9</sup></a></li>
+		
+			<li><a href="/categories/css/" title="css">css<sup>1</sup></a></li>
+		
+			<li><a href="/categories/iconfont技术/" title="iconfont技术">iconfont技术<sup>1</sup></a></li>
+		
+			<li><a href="/categories/javascript/" title="javascript">javascript<sup>15</sup></a></li>
+		
+			<li><a href="/categories/javascript/nodejs/" title="nodejs">nodejs<sup>2</sup></a></li>
+		
+			<li><a href="/categories/从零单排/" title="从零单排">从零单排<sup>1</sup></a></li>
+		
+			<li><a href="/categories/各种知识点记录/" title="各种知识点记录">各种知识点记录<sup>1</sup></a></li>
+		
+			<li><a href="/categories/javascript/源码分析/" title="源码分析">源码分析<sup>5</sup></a></li>
+		
+			<li><a href="/categories/系统环境/" title="系统环境">系统环境<sup>1</sup></a></li>
+		
+			<li><a href="/categories/angularjs记录/翻译/" title="翻译">翻译<sup>1</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			<li><a href="/tags/Filters/" title="Filters">Filters<sup>1</sup></a></li>
+		
+			<li><a href="/tags/analyze/" title="analyze">analyze<sup>1</sup></a></li>
+		
+			<li><a href="/tags/angular/" title="angular">angular<sup>2</sup></a></li>
+		
+			<li><a href="/tags/angularjs/" title="angularjs">angularjs<sup>7</sup></a></li>
+		
+			<li><a href="/tags/ast/" title="ast">ast<sup>1</sup></a></li>
+		
+			<li><a href="/tags/async/" title="async">async<sup>1</sup></a></li>
+		
+			<li><a href="/tags/border-shadow/" title="border-shadow">border-shadow<sup>1</sup></a></li>
+		
+			<li><a href="/tags/chunked/" title="chunked">chunked<sup>1</sup></a></li>
+		
+			<li><a href="/tags/class/" title="class">class<sup>1</sup></a></li>
+		
+			<li><a href="/tags/co/" title="co">co<sup>2</sup></a></li>
+		
+			<li><a href="/tags/comet/" title="comet">comet<sup>1</sup></a></li>
+		
+			<li><a href="/tags/controllers/" title="controllers">controllers<sup>1</sup></a></li>
+		
+			<li><a href="/tags/css3/" title="css3">css3<sup>1</sup></a></li>
+		
+			<li><a href="/tags/generator/" title="generator">generator<sup>1</sup></a></li>
+		
+			<li><a href="/tags/git/" title="git">git<sup>1</sup></a></li>
+		
+			<li><a href="/tags/gulp/" title="gulp">gulp<sup>1</sup></a></li>
+		
+			<li><a href="/tags/html/" title="html">html<sup>1</sup></a></li>
+		
+			<li><a href="/tags/iconfont/" title="iconfont">iconfont<sup>1</sup></a></li>
+		
+			<li><a href="/tags/javascript/" title="javascript">javascript<sup>15</sup></a></li>
+		
+			<li><a href="/tags/koa/" title="koa">koa<sup>2</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+      <li><a href="http://ued.taobao.com/" target="_blank">淘宝UED</a> </li>            <li><a href="http://www.aliued.com/" target="_blank">Alibaba国际站UED</a> </li>            <li><a href="http://china.aliued.com/" target="_blank">Alibaba中文站UED</a> </li>            <li><a href="http://ued.alipay.com/" target="_blank"> 支付宝UED</a> </li>            <li><a href="http://ued.tmall.com/" target="_blank">天猫UED</a> </li><li><a href="http://ur.alibaba-inc.com">阿里用户体验中心</a> </li>	 <li><a href="http://www.uisdc.com" target="_blank">优秀网页设计</a> </li>
+      
+    </ul>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+		<p class="copyright">Powered by <a href="http://zespia.tw/hexo/" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/A-limon/pacman" target="_blank" title="Pacman">Pacman</a> © 2015 
+		
+		<a href="http://purplebamboo.github.com" target="_blank" title="purplebamboo">purplebamboo</a>
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.1.0.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else
+    {
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      h  = $('article h2')
+      ah = $('article h2'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  if(ah.length==0){
+    t.css('display','none');
+  }else{
+    c.click(function(){
+      ta.css('display', 'block').addClass('fadeIn');
+    });
+    o.click(function(){
+      ta.css('display', 'none');
+    });
+    $(window).scroll(function(){
+      ta.css("top",Math.max(140,320-$(this).scrollTop()));
+    });
+  };
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#share"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="#textlogo" class="article-back-to-top" title="Top"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="QRcode"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="Weibo"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"cherishpeace"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+
+
+
+
+<script type="text/javascript">
+  $(function(){
+    window.onscroll = function(){
+      //console.log($(document).scrollTop()+"px")
+      $('.background-container .bg-dy2').css('backgroundPosition','0 '+$(document).scrollTop()+"px");
+    }
+
+  })
+</script>
+<div class="background-container">
+  <div class="bg-dy1">
+
+  </div>
+  <div class="bg-dy2">
+
+  </div>
+
+</div
+
+  </body>
+</html>

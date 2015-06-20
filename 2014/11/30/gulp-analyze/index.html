@@ -1,0 +1,793 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>从零单排之gulp实战 | blog of purplebamboo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
+    
+    <meta name="author" content="purplebamboo">
+    
+    <meta name="description" content="作为一个DOTA小菜鸟，一直羡慕各路大神的从零单排，在DOTA上是单排不了了。所以就只能代码上单排了。这个系列准备写一些各种知识的从零开始到深入原理的过程。记录学到的知识。
+这篇文章就介绍下gulp实战。
+node stream
+gulp是基于node的stream之上的，所以在介绍gulp之前。需">
+    
+    
+    
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/pacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/pacman.jpg">
+    
+    <link rel="stylesheet" href="/css/style.css" type="text/css">
+</head>
+
+  <body>
+    <header>
+      <div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.svg" alt="blog of purplebamboo" title="blog of purplebamboo"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="blog of purplebamboo">blog of purplebamboo</a></h1>
+				<h2 class="blog-motto">dota诚可贵，coding价更高，若为女朋友，二者皆可抛。</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">首页</a></li>
+					
+						<li><a href="/archives">归档</a></li>
+					
+						<li><a href="/categories">分类</a></li>
+					
+						<li><a href="/about">关于</a></li>
+					
+					<li>
+					
+					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="text" id="search" name="q" autocomplete="off" maxlength="20" placeholder="搜索" />
+						<input type="hidden" name="q" value="site:purplebamboo.github.com">
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2014/11/30/gulp-analyze/" title="从零单排之gulp实战" itemprop="url">从零单排之gulp实战</a>
+  </h1>
+  <p class="article-author">By
+    
+      <a href="http://purplebamboo.github.com" title="purplebamboo">purplebamboo</a>
+    </p>
+  <p class="article-time">
+    <time datetime="2014-11-30T07:36:11.000Z" itemprop="datePublished">11月 30 2014</time>
+    更新日期:<time datetime="2014-12-19T01:59:05.000Z" itemprop="dateModified">12月 19 2014</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#node_stream"><span class="toc-number">1.</span> <span class="toc-text">node stream</span></a></li><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#node中的流"><span class="toc-number">1.1.</span> <span class="toc-text">node中的流</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#四种流构造函数"><span class="toc-number">1.2.</span> <span class="toc-text">四种流构造函数</span></a></li></ol><li class="toc-item toc-level-2"><a class="toc-link" href="#gulp简单介绍"><span class="toc-number">2.</span> <span class="toc-text">gulp简单介绍</span></a></li><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#入门使用"><span class="toc-number">2.1.</span> <span class="toc-text">入门使用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#gulp顺序执行"><span class="toc-number">2.2.</span> <span class="toc-text">gulp顺序执行</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#gulp_vs_grunt"><span class="toc-number">2.3.</span> <span class="toc-text">gulp vs grunt</span></a></li></ol><li class="toc-item toc-level-2"><a class="toc-link" href="#gulp原理及插件编写"><span class="toc-number">3.</span> <span class="toc-text">gulp原理及插件编写</span></a></li><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#原理一览"><span class="toc-number">3.1.</span> <span class="toc-text">原理一览</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#插件编写"><span class="toc-number">3.2.</span> <span class="toc-text">插件编写</span></a></li></ol><li class="toc-item toc-level-2"><a class="toc-link" href="#结语"><span class="toc-number">4.</span> <span class="toc-text">结语</span></a></li></ol>
+		</div>
+		
+		<p>作为一个DOTA小菜鸟，一直羡慕各路大神的从零单排，在DOTA上是单排不了了。所以就只能代码上单排了。这个系列准备写一些各种知识的从零开始到深入原理的过程。记录学到的知识。</p>
+<p>这篇文章就介绍下gulp实战。</p>
+<h2 id="node_stream">node stream</h2>
+<p>gulp是基于node的stream之上的，所以在介绍gulp之前。需要先介绍下nodejs里面流的概念。</p>
+<p>以前第一次接触流还是写java的时候，那时候文件都是流。现在node里面也有了流的概念。</p>
+<p>这里可以把读文件比作搬水桶，没有流的话我们读文件是一次性把水桶里面的水都搬走，而有了流就相当于我们搞了个管道。让水一点点的流出来。然后后面要处理的时候，我们也可以一点点的去处理。比如一个文件非常大的时候，一次性的读到内存是很消耗性能的。这时候我们就可以使用流一点点的取，一点点的处理，最后再一点点的写到文件里面。</p>
+<p>node里面最典型的http请求就是一个流。读文件也可以以流的形式。所有的流都继承了EventEmitter，所以都可以使用简单的事件机制。</p>
+<p>比如一个简单的文件读取流：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+</pre></td><td class="code"><pre><span class="keyword">var</span> stream = fs.createReadStream(<span class="string">'ex.txt'</span>);
+<span class="comment">//阶段性的触发data事件，像流水一样，每次出来一点点数据</span>
+stream.on(<span class="string">'data'</span>,<span class="function"><span class="keyword">function</span><span class="params">(chunk)</span>{</span>
+    console.log(chunk);
+})
+<span class="comment">//全部读取完毕后触发end事件</span>
+stream.on(<span class="string">'end'</span>,<span class="function"><span class="keyword">function</span><span class="params">(chunk)</span>{</span>
+    console.log(<span class="string">'done'</span>);
+})
+</pre></td></tr></table></figure>
+
+<h3 id="node中的流">node中的流</h3>
+<p>node里面有四种类型的流：Readable，Writable，Duplex，Transform</p>
+<p>1.Readable 可读流</p>
+<p>上面的createReadStream就是生成了一个可读流。<br>一个可读流分为两种模式：流动模式和暂停模式。流动模式就是数据会自动往外读取。暂停模式是默认的模式，代表数据不会自动往外读。</p>
+<p>当处于暂停模式时我们必须使用stream.read(size)来主动读取数据。一直到没有数据的时候会返回null;</p>
+<p>也可以开启流动模式，有三种方法：<br>（1） 监听data事件，就像我们上面的使用那样。没有数据会触发end事件<br>（2） 使用pipe，会自动开启。pipe代表把当前流写入到一个可写流(见下面介绍)里面。比如我们可以这样：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+</pre></td><td class="code"><pre><span class="keyword">var</span> readStream = fs.createReadStream(<span class="string">'a.txt'</span>);
+<span class="keyword">var</span> writeStream = fs.createWriteStream(<span class="string">'b.txt'</span>);
+readStream.pipe(writeStream);
+<span class="comment">//这样 a.txt的内容就会自动写入到 b.txt里面。</span>
+</pre></td></tr></table></figure>
+
+<p>（3）使用stream.resume()来开启流动模式，有时我们不需要监听data事件来获取获取数据，只是想要监听end事件，这时候就可以使用这个来开启流动模式。</p>
+<p>2.Writable 可写流，</p>
+<p>比如createWriteStream就是返回一个可写流。用于接受一个可读流的写入。就好像是在两个缸直接加了条管道。</p>
+<p>可写流也支持一些方法。</p>
+<p>首先就像我们上面做的那样我们可以 writeStream.pipe(writeStream);直接把一个可读流接到一个可写流上面。</p>
+<p>当然有的时候我们可以自己手动去写数据。<br>writeStream.write(data, encoding, callback);用于向可写流里面写数据。如果数据量太大，处理不过来会返回false。这个时候先不要写数据了。我们可以监听 drain事件，代表处理完毕可以继续写数据了。<br>另外调用writeStream.end(chunk, encoding, callback);来表示写数据完毕。</p>
+<p>3.Transform 转换流，同时可读可写，他可以接受一个流然后做一系列的操作后再输出处理后的流。相当于一个中转站。你可以想象为，它的左边是一个可写流接受可读流的写入。进行处理后，它的右边是个可读流，给下一个转换流处理或者给下一个可写流。所以我们可以这么用readStream.pipe(transformStream).pipe(writeStream);</p>
+<p>4.Duplex  双工流，也是同时可读可写。可以作为可读流也可以作为可写流，典型的例子是socket，zlib的使用。这边的gulp涉及不到就不详细展开了。简单来说就是可以这么用 duplexStream.pipe(transformStream).pipe(duplexStream);</p>
+<h3 id="四种流构造函数">四种流构造函数</h3>
+<p>上面的可读流可写流我们都是直接用的系统自带的，其实我们是可以自己创建一个自定义流对象的。node提供了下面各自对应的父类函数。我们需要自定义自己的流类来继承这些基类并且实现对应的方法。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">模式</th>
+<th style="text-align:center">父类名</th>
+<th style="text-align:center">需要继承的方法</th>
+<th style="text-align:left">解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">Reading only</td>
+<td style="text-align:center">require(‘stream’).Readable</td>
+<td style="text-align:center">_read</td>
+<td style="text-align:left">每次可读流开始读数据的时候就会调用_read来获取数据，在_read里面可以调用this.push(data)来将数据输出到流。如果data是null就代表没数据了</td>
+</tr>
+<tr>
+<td style="text-align:left">Writing only</td>
+<td style="text-align:center">require(‘stream’).Writable</td>
+<td style="text-align:center">_write</td>
+<td style="text-align:left">每次可写流写数据的时候就会调用_write来写数据，我们可以决定这些数据去哪</td>
+</tr>
+<tr>
+<td style="text-align:left">Reading and writing</td>
+<td style="text-align:center">require(‘stream’).Duplex</td>
+<td style="text-align:center">_read, _write</td>
+<td style="text-align:left">双工流可以同时继承这两个函数，表现出上面的样子</td>
+</tr>
+<tr>
+<td style="text-align:left">Operate on written data, then read the result</td>
+<td style="text-align:center">require(‘stream’).Transform</td>
+<td style="text-align:center">_transform, _flush</td>
+<td style="text-align:left">Transform(chunk, encoding, callback)用于处理上一个可读流过来的数据，chunk就是数据，可以在Transform中多次使用this.push(data)来将数据写到下一个流，调用callback结束当前转换。_flush(callback)是在数据全部读完后会调用,在_flush里面也可以调用push和callback结束转换。</td>
+</tr>
+</tbody>
+</table>
+<p>这边与下面gulp最相关的就是转换流，我们以一个例子来说明主要的用法。</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+</pre></td><td class="code"><pre><span class="keyword">var</span> Transform = <span class="built_in">require</span>(<span class="string">'stream'</span>).Transform;
+util.inherits(TestStream, Transform);
+
+<span class="function"><span class="keyword">function</span> <span class="title">TestStream</span><span class="params">(options)</span> {</span>
+  Transform.call(<span class="keyword">this</span>, options);
+}
+
+TestStream.prototype._transform = <span class="function"><span class="keyword">function</span><span class="params">(chunk, encoding, cb)</span> {</span>
+  <span class="keyword">this</span>.push(chunk+<span class="string">'|'</span>);
+  cb();
+};
+
+TestStream.prototype._flush = <span class="function"><span class="keyword">function</span><span class="params">(cb)</span> {</span>
+  cb(<span class="string">'end'</span>);
+};
+
+<span class="comment">//于是可以使用  readStream.pipe(new TestStream()).pipe(writeStream);</span>
+</pre></td></tr></table></figure>
+
+<p>其他模式的都差不多一个用法，总之就是继承父类再实现相对应的接口。</p>
+<p>默认情况下上面四种构造函数实例化后都是使用的string或者buffer来传递数据的。其实 在使用new实例化对象的时候支持objectMode参数。如果这个参数为true。那么我们调用this.push的时候就可以传入一个对象。这样后面的流去分段读的时候每次都会只读取一个对象。有了这个特性，我们就可以在不同的流之间以对象为单位进行数据转换了。</p>
+<h2 id="gulp简单介绍">gulp简单介绍</h2>
+<hr>
+<p>前端经过这几年的发展已经越来越向工业化的道路发展了。java有ant，ruby有rake。而前端比较出名的任务工具就要属grunt和gulp了。说白了这两个工具就是可以自定义任务脚本，然后使用命令行去执行这些任务。包括打包，压缩，开个服务器等等等都可以实现。</p>
+<h3 id="入门使用">入门使用</h3>
+<p>首先我们安装gulp：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+</pre></td><td class="code"><pre>npm <span class="keyword">install</span> -g gulp
+</pre></td></tr></table></figure>
+
+<p>记得使用全局安装，这样我们就具有了gulp这个命令。</p>
+<p>下面我们需要在项目根目录新建一个gulpfile.js，这个是任务的定义的地方。</p>
+<p>我们看一个简单的gulpfile.js：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+</pre></td><td class="code"><pre><span class="keyword">var</span> gulp = <span class="built_in">require</span>(<span class="string">'gulp'</span>);
+<span class="keyword">var</span> less = <span class="built_in">require</span>(<span class="string">'gulp-less'</span>);
+
+gulp.task(<span class="string">'less'</span>,[], <span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>
+    gulp.src(<span class="string">'./public/css/*.less'</span>)
+        .pipe(less({}))
+        .pipe(gulp.dest(<span class="string">'./public/css/'</span>));
+});
+</pre></td></tr></table></figure>
+
+<blockquote>
+<p>这边引用了gulp-less，所以不要忘了 npm install gulp-less —save</p>
+</blockquote>
+<p>less就是官方的一个插件，用于将less格式的文件解析为css。可以看到这边less({})其实就是返回了一个转换流。</p>
+<p>gulp.task用于定义一个新的任务。<br>第一个参数是这个任务的名称是less.<br>第二个可选参数是当前任务依赖的其他任务，启动当前任务会同时挨个启动依赖的任务。<br>第三个可选参数是任务的具体执行函数。</p>
+<p>gulp.src用于读取文件，转换为流的形式。写入下一个转换流。参数为glob标识，或者多个标识组成的数组</p>
+<p>什么是glob呢？<br>说白了就是支持那种类似正则一样的标识手法，比如<em>.less就代表所有以less结尾的文件。<br>另外我们经常在unix类型的系统里面使用 ls </em>.less 也是使用的golb标识。</p>
+<p>gulp主要使用的是<a href="https://github.com/isaacs/node-glob#glob-primer" target="_blank">node-glob</a>来解析glob的,所以可以去那边看一下支持的写法。</p>
+<p>gulp.dest执行返回一个转换流，用于接受可读流然后写到对应的文件里面。接受一个文件夹地址作为参数。</p>
+<p>于是我们定义了一个起始输入流，还有最后面的转换流。使用了less在半路上处理中间的流。想要其他的插件也只需要中间多pipe一个就行了。只有src还有dest会有磁盘读写，而且职责清晰，每个人对经过的流都做些操作再丢给下一个处理。这就像车间流水线一样，每个阶段都有相应的处理程序对原材料加工。所以效率相当高效。</p>
+<p>最后我们在命令行里调用：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+</pre></td><td class="code"><pre>gulp <span class="operator">less</span>
+</pre></td></tr></table></figure>
+
+<p>这样就会把<code>./public/css/</code>下面的所有less文件解析为对应文件名的css。</p>
+<p>gulp还支持两个接口</p>
+<p>一个是watch用于监控文件变化：接受glob标识，还有相对应的执行任务数组</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+</pre></td><td class="code"><pre>gulp.task(<span class="string">'watch_less'</span>, <span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>
+    gulp.watch([<span class="string">'./public/css/*.less'</span>], [<span class="string">'less'</span>]);
+});
+<span class="comment">//运行gulp watch_less 会监听所有的less文件，发生改变就会调用less任务。</span>
+</pre></td></tr></table></figure>
+
+<p>还有一个是run用于手动调用任务，不过即将被废弃了，慎用。</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+</pre></td><td class="code"><pre>gulp.task(<span class="string">'test'</span>,[less],<span class="function"><span class="keyword">function</span><span class="params">()</span>{</span>
+    gulp.run(<span class="string">'watch_less'</span>);
+})
+<span class="comment">//在运行完less后 运行watch_less持续监听文件</span>
+</pre></td></tr></table></figure>
+
+<h3 id="gulp顺序执行">gulp顺序执行</h3>
+<p>刚开始接触gulp的人肯定会被他的异步机制搞晕。在grunt里面因为后面一个脚本的读入文件都是依赖前一个脚本的产出文件的，所以他们是串行的，因此任务会一个个的去执行。</p>
+<p>但是在gulp里所有任务都是并行同步执行的。比如我们上面的例子：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+</pre></td><td class="code"><pre>gulp.task(<span class="string">'test'</span>,[less],<span class="function"><span class="keyword">function</span><span class="params">()</span>{</span>
+    gulp.run(<span class="string">'watch_less'</span>);
+})
+<span class="comment">//在运行完less后 运行watch_less持续监听文件</span>
+</pre></td></tr></table></figure>
+
+<p>我们是希望 运行完less,再去运行watch_less,但是在gulp里面这两个任务是同时并行执行的。这会给我们造成困扰，这个时候我们需要对依赖的任务做一些处理。使得依赖的任务做完了再去执行当前任务的执行函数。</p>
+<p>gulp有三种方式：<br>1.直接返回一个流</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+</pre></td><td class="code"><pre>gulp.task(<span class="string">'watch_less'</span>, <span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>
+    <span class="keyword">return</span> gulp.watch([<span class="string">'./public/css/*.less'</span>], [<span class="string">'less'</span>]);
+});
+<span class="comment">//是的只要加一个return就好了</span>
+</pre></td></tr></table></figure>
+
+<p>2.直接返回一个promise</p>
+<p>比如我们再定义一个异步的任务</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+</pre></td><td class="code"><pre>gulp.task(<span class="string">'test_async'</span>, <span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>
+  <span class="keyword">var</span> Q = <span class="built_in">require</span>(<span class="string">'q'</span>);
+  <span class="keyword">var</span> deferred = Q.defer();
+  <span class="comment">// do async stuff</span>
+  setTimeout(<span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>
+    deferred.resolve();
+  }, <span class="number">1</span>);
+
+  <span class="keyword">return</span> deferred.promise;
+});
+</pre></td></tr></table></figure>
+
+<p>3.使用回调callback<br>task的执行函数其实都有个回调，我们只需要在异步队列完成的时候调用它就好了。</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+</pre></td><td class="code"><pre>gulp.task(<span class="string">'test_async'</span>, <span class="function"><span class="keyword">function</span> <span class="params">(cb)</span> {</span>
+
+  <span class="comment">// do async stuff</span>
+  setTimeout(<span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>
+    cb()
+  }, <span class="number">1</span>);
+});
+</pre></td></tr></table></figure>
+
+<p>所以只要依赖的任务是上面三种情况之一，就能保证当前任务在依赖任务执行完成后再执行。这边需要注意的是依赖的任务相互之间还是并行的。需要他们按顺序的话。记得给每个依赖的任务也配置好依赖关系。</p>
+<p>好了基本上gulp的入门使用就介绍完了。</p>
+<h3 id="gulp_vs_grunt">gulp vs grunt</h3>
+<p>grunt由于是基于文件读写的，前一个任务做完写好文件，下个任务再去读文件进行操作。所以频繁的磁盘io读写会很浪费性能。而且由于grunt的输入输出格式没有统一规范化，导致目前线上的各种库的入口文件还有出口文件配置五花八门，而且职责混乱。越来越被人诟病。</p>
+<p>于是gulp出来了。基于node的stream机制，最大程度的减少了磁盘io消耗。所有的插件具有了统一的入口，插件都是在流的中间对输入流操作，输出更改过的流给下一个插件。并且每个人只做自己的事，职责分明。</p>
+<p>当然grunt出来的比较早，所以官方社区的插件比较多。gulp的插件还没那么多。不过未来gulp肯定是主流，目前我们团队的项目基本都在望gulp上迁移了。</p>
+<h2 id="gulp原理及插件编写">gulp原理及插件编写</h2>
+<h3 id="原理一览">原理一览</h3>
+<p>gulp的原理其实很简单，如果去查看它的源码，你就会发现他就像用乐高积木搭建起来的一样。都是已经很成熟的一个个模块组合在一起的。</p>
+<p>主要有两大模块支撑着gulp.</p>
+<p>第一个就是一个任务依赖队列的库。<a href="https://github.com/orchestrator/orchestrator" target="_blank">orchestrator</a>.主要实现了task方法，还有解决任务依赖关系。这个没啥好说的<br>第二个就是一个文件转换系统。<a href="https://github.com/wearefractal/vinyl-fs" target="_blank">vinyl-fs</a>.主要实现了src,dst还有watch。watch功能就不说了使用的<a href="https://github.com/wearefractal/glob-watcher" target="_blank">glob-watcher</a>。src内置了glob的功能，前面已经解释过了。<br>src会将匹配到的路径全部生成一个对应的开启<code>Object Mode</code>的可读流。传递的对象为<a href="https://github.com/wearefractal/vinyl" target="_blank">vinyl</a>,如下参数：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+</pre></td><td class="code"><pre><span class="rules">{
+  <span class="rule"><span class="attribute">cwd</span>:<span class="value"> cwd,
+  base: base,
+  stat: 使用 fs.Stats得到的结果
+  path: 文件路径,
+  contents: 文件的内容
+</span></span></span>}
+</pre></td></tr></table></figure>
+
+<p>之后再把所有的可读流合并成一个可读流，使用的是<a href="https://github.com/armed/ordered-read-streams" target="_blank">ordered-read-streams</a><br>然后传递给一个转换流，也就是我们之后会编写的插件。处理完再写入到一个dst生成的转换流里面,写入文件。整个过程就结束了。</p>
+<blockquote>
+<p>由于dst是一个转换流，所以可以继续pipe到其他的插件上。</p>
+</blockquote>
+<h3 id="插件编写">插件编写</h3>
+<p>终于到了最后一步了，我们可以自己编写插件了。通过前面的解释其实已经很清楚了，我们只要实现一个转换流就好了。为了避免写那么一大堆的继承的东西我们可以使用一些库，比如<a href="https://github.com/rvagg/through2" target="_blank">through2</a>，比如<a href="https://github.com/bornkiller/through-gulp" target="_blank">through-gulp</a><br>于是我们可以写个最简单的插件，比如我写的这个简单的将html文件内容打包成cmd,amd的模块。方便线上跨域调用的插件。</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+</pre></td><td class="code"><pre><span class="javadoc">/**
+ * 用于将html代码打包成cmd,amd规范可以使用的模块。这样可以跨域使用。
+ */</span>
+
+<span class="keyword">var</span> through = require(<span class="string">'through-gulp'</span>);
+
+
+function viewComile() {
+  <span class="comment">//through(transformFunction, flushFunction) through 接受两个参数对应前面的_transform, _flush。返回一个生成好的开启object mode的转换流</span>
+  <span class="keyword">var</span> stream = through(function(file, encoding,callback) {
+
+      <span class="keyword">var</span> htmlStr,jsStr;
+      <span class="comment">//拿到内容</span>
+      htmlStr = file.contents.toString();
+
+      <span class="javadoc">/******逻辑开始*****/</span>
+      <span class="comment">//各种逻辑，处理htmlStr,略</span>
+      <span class="javadoc">/******逻辑结束*****/</span>
+
+      <span class="comment">//改写文件内容</span>
+      file.contents = <span class="keyword">new</span> Buffer(htmlStr);
+      <span class="comment">//给下一个流</span>
+      <span class="keyword">this</span>.push(file);
+      callback();
+
+    });
+  <span class="keyword">return</span> stream;
+
+};
+
+module.exports = viewComile;
+</pre></td></tr></table></figure>
+
+<p>一个插件就弄好了，至于后续是发到npm上还是放在本地目录，就随便了。</p>
+<p>可以直接放在本地，调用的时候就可以：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+</pre></td><td class="code"><pre><span class="keyword">var</span> rename = <span class="built_in">require</span>(<span class="string">'gulp-rename'</span>);
+<span class="keyword">var</span> viewCompile = <span class="built_in">require</span>(<span class="string">'./task/gulp-view-compile.js'</span>);
+gulp.task(<span class="string">'viewcompile'</span>, <span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>
+    gulp.src(<span class="string">'./public/views/**/*.html'</span>)
+            .pipe(viewCompile())
+            .pipe(rename(<span class="function"><span class="keyword">function</span> <span class="params">(path)</span> {</span>
+                path.extname = <span class="string">".js"</span>;
+            }))
+            .pipe(gulp.dest(<span class="string">'build/views/'</span>))
+});
+</pre></td></tr></table></figure>
+
+<p>当然也可以封装成npm包。比如上面的插件我最后封装在了<a href="https://github.com/purplebamboo/gulp-view-compile" target="_blank">这里</a>,可以到这里面看看详细用法。</p>
+<h2 id="结语">结语</h2>
+<p>写文章好累，一个知识点总是串联着其他的知识点，想要重头开始理一边的确很吃力，不过相应的带来的收获也是巨大的</p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/gulp/">gulp</a><a href="/tags/analyze/">analyze</a><a href="/tags/stream/">stream</a>
+  </div>
+
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/从零单排/">从零单排</a>
+</div>
+
+
+
+<div class="article-share" id="share">
+
+  <div data-url="http://purplebamboo.github.com/2014/11/30/gulp-analyze/" data-title="从零单排之gulp实战 | blog of purplebamboo" data-tsina="null" class="share clearfix">
+  </div>
+
+</div>
+</footer>   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2014/12/14/javascript-comet-chunked-data-response/" title="javascript分段读取的实现">
+  <strong>PREVIOUS:</strong><br/>
+  <span>
+  javascript分段读取的实现</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2014/09/27/javascript-syntax-tree/"  title="javascript语法树">
+ <strong>NEXT:</strong><br/> 
+ <span>javascript语法树
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section class="comment">
+	<div class="ds-thread"></div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+  <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#node_stream"><span class="toc-number">1.</span> <span class="toc-text">node stream</span></a></li><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#node中的流"><span class="toc-number">1.1.</span> <span class="toc-text">node中的流</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#四种流构造函数"><span class="toc-number">1.2.</span> <span class="toc-text">四种流构造函数</span></a></li></ol><li class="toc-item toc-level-2"><a class="toc-link" href="#gulp简单介绍"><span class="toc-number">2.</span> <span class="toc-text">gulp简单介绍</span></a></li><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#入门使用"><span class="toc-number">2.1.</span> <span class="toc-text">入门使用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#gulp顺序执行"><span class="toc-number">2.2.</span> <span class="toc-text">gulp顺序执行</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#gulp_vs_grunt"><span class="toc-number">2.3.</span> <span class="toc-text">gulp vs grunt</span></a></li></ol><li class="toc-item toc-level-2"><a class="toc-link" href="#gulp原理及插件编写"><span class="toc-number">3.</span> <span class="toc-text">gulp原理及插件编写</span></a></li><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#原理一览"><span class="toc-number">3.1.</span> <span class="toc-text">原理一览</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#插件编写"><span class="toc-number">3.2.</span> <span class="toc-text">插件编写</span></a></li></ol><li class="toc-item toc-level-2"><a class="toc-link" href="#结语"><span class="toc-number">4.</span> <span class="toc-text">结语</span></a></li></ol>
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+			<li><a href="/categories/angularjs记录/" title="angularjs记录">angularjs记录<sup>9</sup></a></li>
+		
+			<li><a href="/categories/css/" title="css">css<sup>1</sup></a></li>
+		
+			<li><a href="/categories/iconfont技术/" title="iconfont技术">iconfont技术<sup>1</sup></a></li>
+		
+			<li><a href="/categories/javascript/" title="javascript">javascript<sup>15</sup></a></li>
+		
+			<li><a href="/categories/javascript/nodejs/" title="nodejs">nodejs<sup>2</sup></a></li>
+		
+			<li><a href="/categories/从零单排/" title="从零单排">从零单排<sup>1</sup></a></li>
+		
+			<li><a href="/categories/各种知识点记录/" title="各种知识点记录">各种知识点记录<sup>1</sup></a></li>
+		
+			<li><a href="/categories/javascript/源码分析/" title="源码分析">源码分析<sup>5</sup></a></li>
+		
+			<li><a href="/categories/系统环境/" title="系统环境">系统环境<sup>1</sup></a></li>
+		
+			<li><a href="/categories/angularjs记录/翻译/" title="翻译">翻译<sup>1</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			<li><a href="/tags/Filters/" title="Filters">Filters<sup>1</sup></a></li>
+		
+			<li><a href="/tags/analyze/" title="analyze">analyze<sup>1</sup></a></li>
+		
+			<li><a href="/tags/angular/" title="angular">angular<sup>2</sup></a></li>
+		
+			<li><a href="/tags/angularjs/" title="angularjs">angularjs<sup>7</sup></a></li>
+		
+			<li><a href="/tags/ast/" title="ast">ast<sup>1</sup></a></li>
+		
+			<li><a href="/tags/async/" title="async">async<sup>1</sup></a></li>
+		
+			<li><a href="/tags/border-shadow/" title="border-shadow">border-shadow<sup>1</sup></a></li>
+		
+			<li><a href="/tags/chunked/" title="chunked">chunked<sup>1</sup></a></li>
+		
+			<li><a href="/tags/class/" title="class">class<sup>1</sup></a></li>
+		
+			<li><a href="/tags/co/" title="co">co<sup>2</sup></a></li>
+		
+			<li><a href="/tags/comet/" title="comet">comet<sup>1</sup></a></li>
+		
+			<li><a href="/tags/controllers/" title="controllers">controllers<sup>1</sup></a></li>
+		
+			<li><a href="/tags/css3/" title="css3">css3<sup>1</sup></a></li>
+		
+			<li><a href="/tags/generator/" title="generator">generator<sup>1</sup></a></li>
+		
+			<li><a href="/tags/git/" title="git">git<sup>1</sup></a></li>
+		
+			<li><a href="/tags/gulp/" title="gulp">gulp<sup>1</sup></a></li>
+		
+			<li><a href="/tags/html/" title="html">html<sup>1</sup></a></li>
+		
+			<li><a href="/tags/iconfont/" title="iconfont">iconfont<sup>1</sup></a></li>
+		
+			<li><a href="/tags/javascript/" title="javascript">javascript<sup>15</sup></a></li>
+		
+			<li><a href="/tags/koa/" title="koa">koa<sup>2</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+      <li><a href="http://ued.taobao.com/" target="_blank">淘宝UED</a> </li>            <li><a href="http://www.aliued.com/" target="_blank">Alibaba国际站UED</a> </li>            <li><a href="http://china.aliued.com/" target="_blank">Alibaba中文站UED</a> </li>            <li><a href="http://ued.alipay.com/" target="_blank"> 支付宝UED</a> </li>            <li><a href="http://ued.tmall.com/" target="_blank">天猫UED</a> </li><li><a href="http://ur.alibaba-inc.com">阿里用户体验中心</a> </li>	 <li><a href="http://www.uisdc.com" target="_blank">优秀网页设计</a> </li>
+      
+    </ul>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+		<p class="copyright">Powered by <a href="http://zespia.tw/hexo/" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/A-limon/pacman" target="_blank" title="Pacman">Pacman</a> © 2015 
+		
+		<a href="http://purplebamboo.github.com" target="_blank" title="purplebamboo">purplebamboo</a>
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.1.0.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else
+    {
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      h  = $('article h2')
+      ah = $('article h2'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  if(ah.length==0){
+    t.css('display','none');
+  }else{
+    c.click(function(){
+      ta.css('display', 'block').addClass('fadeIn');
+    });
+    o.click(function(){
+      ta.css('display', 'none');
+    });
+    $(window).scroll(function(){
+      ta.css("top",Math.max(140,320-$(this).scrollTop()));
+    });
+  };
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#share"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="#textlogo" class="article-back-to-top" title="Top"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="QRcode"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="Weibo"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"cherishpeace"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+
+
+
+
+<script type="text/javascript">
+  $(function(){
+    window.onscroll = function(){
+      //console.log($(document).scrollTop()+"px")
+      $('.background-container .bg-dy2').css('backgroundPosition','0 '+$(document).scrollTop()+"px");
+    }
+
+  })
+</script>
+<div class="background-container">
+  <div class="bg-dy1">
+
+  </div>
+  <div class="bg-dy2">
+
+  </div>
+
+</div
+
+  </body>
+</html>

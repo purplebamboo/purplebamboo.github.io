@@ -1,0 +1,1169 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>angularjs博客的制作（二） | blog of purplebamboo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
+    
+    <meta name="author" content="purplebamboo">
+    
+    <meta name="description" content="这一章用来实现博客的增删改。
+删除功能
+删除很简单，只需要操作$scope的数据对象就行。
+首先我们在html里面加上 ng-click这个Directive。这个东西会给dom节点增加一个事件监听。如下：
+1
+2
+3
+4
+5
+6
+7
+&lt;ul class=&quot;list&quot;&gt;
+        ">
+    
+    
+    
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/pacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/pacman.jpg">
+    
+    <link rel="stylesheet" href="/css/style.css" type="text/css">
+</head>
+
+  <body>
+    <header>
+      <div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.svg" alt="blog of purplebamboo" title="blog of purplebamboo"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="blog of purplebamboo">blog of purplebamboo</a></h1>
+				<h2 class="blog-motto">dota诚可贵，coding价更高，若为女朋友，二者皆可抛。</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">首页</a></li>
+					
+						<li><a href="/archives">归档</a></li>
+					
+						<li><a href="/categories">分类</a></li>
+					
+						<li><a href="/about">关于</a></li>
+					
+					<li>
+					
+					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="text" id="search" name="q" autocomplete="off" maxlength="20" placeholder="搜索" />
+						<input type="hidden" name="q" value="site:purplebamboo.github.com">
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2013/09/22/angularjs-eg2/" title="angularjs博客的制作（二）" itemprop="url">angularjs博客的制作（二）</a>
+  </h1>
+  <p class="article-author">By
+    
+      <a href="http://purplebamboo.github.com" title="purplebamboo">purplebamboo</a>
+    </p>
+  <p class="article-time">
+    <time datetime="2013-09-22T07:16:56.000Z" itemprop="datePublished">9月 22 2013</time>
+    更新日期:<time datetime="2014-08-20T23:19:05.000Z" itemprop="dateModified">8月 21 2014</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#删除功能"><span class="toc-number">1.</span> <span class="toc-text">删除功能</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#增加功能的实现"><span class="toc-number">2.</span> <span class="toc-text">增加功能的实现</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#修改的实现"><span class="toc-number">3.</span> <span class="toc-text">修改的实现</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#结语"><span class="toc-number">4.</span> <span class="toc-text">结语</span></a></li></ol>
+		</div>
+		
+		<p>这一章用来实现博客的增删改。</p>
+<h2 id="删除功能">删除功能</h2>
+<p>删除很简单，只需要操作$scope的数据对象就行。</p>
+<p>首先我们在html里面加上 ng-click这个Directive。这个东西会给dom节点增加一个事件监听。如下：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+</pre></td><td class="code"><pre><span class="tag">&lt;<span class="title">ul</span> <span class="attribute">class</span>=<span class="value">"list"</span>&gt;</span>
+          <span class="tag">&lt;<span class="title">li</span> <span class="attribute">ng-repeat</span>=<span class="value">"post in list | filter:search"</span>&gt;</span>
+            <span class="tag">&lt;<span class="title">span</span> <span class="attribute">style</span>=<span class="value">"color:#000;font-size:20px;"</span>&gt;</span>※{{post.title}}<span class="tag">&lt;/<span class="title">span</span>&gt;</span>
+             <span class="tag">&lt;<span class="title">a</span> <span class="attribute">href</span>=<span class="value">"javascript:;"</span> <span class="attribute">ng-click</span>=<span class="value">"del(post.id)"</span>&gt;</span>删除<span class="tag">&lt;/<span class="title">a</span>&gt;</span>
+            <span class="tag">&lt;<span class="title">div</span>&gt;</span>{{post.content}}<span class="tag">&lt;/<span class="title">div</span>&gt;</span>
+          <span class="tag">&lt;/<span class="title">li</span>&gt;</span>
+        <span class="tag">&lt;/<span class="title">ul</span>&gt;</span>
+</pre></td></tr></table></figure>
+
+<p>这样 点击删除这个链接时，angular就会帮你调用 $scope上的del这个方法，我们来看看这个方法的定义;</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+</pre></td><td class="code"><pre>Post.controller(<span class="string">'postCtrl'</span>, [<span class="string">'$scope'</span>, <span class="function"><span class="keyword">function</span><span class="params">(<span class="variable">$scope</span>)</span> {</span>
+        <span class="variable">$scope</span>.<span class="keyword">list</span> = [{
+          id:<span class="number">1</span>,
+          title:<span class="string">"好无聊啊！！！"</span>,
+          content:<span class="string">"今天好无聊！！"</span>
+        },{
+          id:<span class="number">2</span>,
+          title:<span class="string">"生日了！！！"</span>,
+          content:<span class="string">"今天生日啦！！！！"</span>
+        }];
+
+        <span class="variable">$scope</span>.del = <span class="function"><span class="keyword">function</span><span class="params">(id)</span>{</span>
+          <span class="keyword">var</span> index = -<span class="number">1</span>;
+          <span class="keyword">for</span> (<span class="keyword">var</span> i = <span class="number">0</span>; i &lt; <span class="variable">$scope</span>.<span class="keyword">list</span>.length; i++) {
+            <span class="keyword">if</span> (<span class="variable">$scope</span>.<span class="keyword">list</span>[i][<span class="string">'id'</span>] == id) {
+              index = i;
+              <span class="keyword">break</span>;
+            };
+          
+          }
+          <span class="variable">$scope</span>.<span class="keyword">list</span>.splice(index,<span class="number">1</span>);
+        };
+    }]);
+</pre></td></tr></table></figure>
+
+<p>这边为了方便删除，我给每个文章的数据都加了个id，用来标示。<br>del的操作就是找到当前要删除的那个文章在 $scope.list的索引index然后通过splice删除。只要更新了$scope.list，相应的html会自动更新，瞬间删除的功能就完成了。方便吧。</p>
+<h2 id="增加功能的实现">增加功能的实现</h2>
+<p>增加也很简单，直接往$scope.list里面插入个数据就好了。代码如下:</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+</pre></td><td class="code"><pre><span class="doctype">&lt;!doctype html&gt;</span>
+<span class="tag">&lt;<span class="title">html</span> &gt;</span>
+  <span class="tag">&lt;<span class="title">head</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">meta</span> <span class="attribute">charset</span>=<span class="value">"utf-8"</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">script</span> <span class="attribute">src</span>=<span class="value">"angular.js"</span>&gt;</span><span class="javascript"></span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"text/javascript"</span>&gt;</span><span class="javascript">
+    <span class="keyword">var</span> Post = angular.module(<span class="string">'posts'</span>,[]);
+ 
+    Post.controller(<span class="string">'postCtrl'</span>, [<span class="string">'$scope'</span>, <span class="function"><span class="keyword">function</span><span class="params">($scope)</span> {</span>
+        $scope.list = [{
+          id:<span class="number">1</span>,
+          title:<span class="string">"好无聊啊！！！"</span>,
+          content:<span class="string">"今天好无聊！！"</span>
+        },{
+          id:<span class="number">2</span>,
+          title:<span class="string">"生日了！！！"</span>,
+          content:<span class="string">"今天生日啦！！！！"</span>
+        }];
+
+        $scope.del = <span class="function"><span class="keyword">function</span><span class="params">(id)</span>{</span>
+         ......
+        };
+
+
+        $scope.add = <span class="function"><span class="keyword">function</span><span class="params">()</span>{</span>
+          $scope.manageShow =<span class="number">1</span>;
+          $scope.manageId=-<span class="number">1</span>;
+        }
+
+        $scope.manage =<span class="function"><span class="keyword">function</span><span class="params">()</span>{</span>
+          <span class="comment">//&gt;0代表编辑 -1代表增加</span>
+          <span class="keyword">if</span> ($scope.manageId==-<span class="number">1</span>) {
+            <span class="keyword">var</span> id = $scope.list.length;
+            <span class="keyword">var</span> obj = {
+              id:id,
+              title:$scope.curTitle,
+              content:$scope.curContent
+            }
+            $scope.list.push(obj);
+          }
+        }
+
+    }]);
+    </span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">style</span> <span class="attribute">type</span>=<span class="value">"text/css"</span>&gt;</span><span class="css">
+....
+
+    </span><span class="tag">&lt;/<span class="title">style</span>&gt;</span>
+  <span class="tag">&lt;/<span class="title">head</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">body</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">div</span> <span class="attribute">class</span>=<span class="value">"wrap"</span> <span class="attribute">ng-app</span>=<span class="value">"posts"</span>&gt;</span>
+      <span class="tag">&lt;<span class="title">h2</span>&gt;</span>文章列表<span class="tag">&lt;/<span class="title">h2</span>&gt;</span>
+      <span class="tag">&lt;<span class="title">div</span> <span class="attribute">ng-controller</span>=<span class="value">"postCtrl"</span>&gt;</span>   
+      <span class="tag">&lt;<span class="title">input</span> <span class="attribute">type</span>=<span class="value">"text"</span> <span class="attribute">ng-model</span>=<span class="value">"search"</span> <span class="attribute">class</span>=<span class="value">"search"</span> <span class="attribute">placeholder</span>=<span class="value">"Search"</span>&gt;</span>    
+        <span class="tag">&lt;<span class="title">ul</span> <span class="attribute">class</span>=<span class="value">"list"</span>&gt;</span>
+          <span class="tag">&lt;<span class="title">li</span> <span class="attribute">ng-repeat</span>=<span class="value">"post in list | filter:search"</span>&gt;</span>
+            <span class="tag">&lt;<span class="title">span</span> <span class="attribute">style</span>=<span class="value">"color:#000;font-size:20px;"</span>&gt;</span>※{{post.title}}<span class="tag">&lt;/<span class="title">span</span>&gt;</span>
+             <span class="tag">&lt;<span class="title">a</span> <span class="attribute">href</span>=<span class="value">"javascript:;"</span> <span class="attribute">ng-click</span>=<span class="value">"del(post.id)"</span>&gt;</span>删除<span class="tag">&lt;/<span class="title">a</span>&gt;</span>
+            
+            <span class="tag">&lt;<span class="title">div</span>&gt;</span>{{post.content}}<span class="tag">&lt;/<span class="title">div</span>&gt;</span>
+          <span class="tag">&lt;/<span class="title">li</span>&gt;</span>
+        <span class="tag">&lt;/<span class="title">ul</span>&gt;</span>
+        <span class="tag">&lt;<span class="title">button</span> <span class="attribute">ng-click</span>=<span class="value">"add()"</span>&gt;</span>点我增加<span class="tag">&lt;/<span class="title">button</span>&gt;</span>
+
+      <span class="tag">&lt;<span class="title">div</span> <span class="attribute">class</span>=<span class="value">"post_manage"</span> <span class="attribute">ng-show</span>=<span class="value">"manageShow"</span>&gt;</span>
+        标题:<span class="tag">&lt;<span class="title">input</span> <span class="attribute">type</span>=<span class="value">"text"</span> <span class="attribute">ng-model</span>=<span class="value">"curTitle"</span> <span class="attribute">value</span>=<span class="value">"{{curTitle}}"</span>/&gt;</span>
+        内容:<span class="tag">&lt;<span class="title">input</span> <span class="attribute">type</span>=<span class="value">"text"</span> <span class="attribute">ng-model</span>=<span class="value">"curContent"</span> <span class="attribute">value</span>=<span class="value">"{{curContent}}"</span>/&gt;</span>
+        <span class="tag">&lt;<span class="title">a</span> <span class="attribute">href</span>=<span class="value">"javascript:;"</span> <span class="attribute">ng-click</span>=<span class="value">"manage()"</span>&gt;</span>确定<span class="tag">&lt;/<span class="title">a</span>&gt;</span>
+      <span class="tag">&lt;/<span class="title">div</span>&gt;</span>
+      <span class="tag">&lt;/<span class="title">div</span>&gt;</span>
+    <span class="tag">&lt;/<span class="title">div</span>&gt;</span>
+  <span class="tag">&lt;/<span class="title">body</span>&gt;</span>
+<span class="tag">&lt;/<span class="title">html</span>&gt;</span>
+</pre></td></tr></table></figure>
+
+<p>首先是html</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+</pre></td><td class="code"><pre><span class="tag">&lt;<span class="title">button</span> <span class="attribute">ng-click</span>=<span class="value">"add()"</span>&gt;</span>点我增加<span class="tag">&lt;/<span class="title">button</span>&gt;</span>
+      <span class="tag">&lt;<span class="title">div</span> <span class="attribute">class</span>=<span class="value">"post_manage"</span> <span class="attribute">ng-show</span>=<span class="value">"manageShow"</span>&gt;</span>
+        标题:<span class="tag">&lt;<span class="title">input</span> <span class="attribute">type</span>=<span class="value">"text"</span> <span class="attribute">ng-model</span>=<span class="value">"curTitle"</span> <span class="attribute">value</span>=<span class="value">"{{curTitle}}"</span>/&gt;</span>
+        内容:<span class="tag">&lt;<span class="title">input</span> <span class="attribute">type</span>=<span class="value">"text"</span> <span class="attribute">ng-model</span>=<span class="value">"curContent"</span> <span class="attribute">value</span>=<span class="value">"{{curContent}}"</span>/&gt;</span>
+        <span class="tag">&lt;<span class="title">a</span> <span class="attribute">href</span>=<span class="value">"javascript:;"</span> <span class="attribute">ng-click</span>=<span class="value">"manage()"</span>&gt;</span>确定<span class="tag">&lt;/<span class="title">a</span>&gt;</span>
+      <span class="tag">&lt;/<span class="title">div</span>&gt;</span>
+</pre></td></tr></table></figure>
+
+<p>加一个button点击后调用add函数，add函数就做了两件事，将 <code>$scope.manageShow</code>设为1，将  <code>$scope.manageId</code>设为-1。<br>首先$scope.manageShow是为下面的</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+</pre></td><td class="code"><pre> &lt;<span class="keyword">div</span> <span class="type">class</span>=<span class="string">"post_manage"</span> ng-show=<span class="string">"manageShow"</span>&gt;
+</pre></td></tr></table></figure>
+
+<p>服务的。ng-show=”manageShow”的机制是这样的。当$scope.manageShow的值为非true的值时就会给当前的dom节点增加一个class =&gt; ng-hide 并且这个class被angular设成了。<code>.ng-hide {display: none !important;}</code>,也就是说只有$scope.manageShow为true类型的值时，这个dom才会显示出来。<br>将  <code>$scope.manageId</code>设为-1。是为了告诉后面的manage函数，现在做的是增加文章的操作。</p>
+<h2 id="修改的实现">修改的实现</h2>
+<p>跟增加差不多，增加下面这些代码：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+</pre></td><td class="code"><pre><span class="doctype">&lt;!doctype html&gt;</span>
+<span class="tag">&lt;<span class="title">html</span> &gt;</span>
+  <span class="tag">&lt;<span class="title">head</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">meta</span> <span class="attribute">charset</span>=<span class="value">"utf-8"</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">script</span> <span class="attribute">src</span>=<span class="value">"angular.js"</span>&gt;</span><span class="javascript"></span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"text/javascript"</span>&gt;</span><span class="javascript">
+    <span class="keyword">var</span> Post = angular.module(<span class="string">'posts'</span>,[]);
+ 
+    Post.controller(<span class="string">'postCtrl'</span>, [<span class="string">'$scope'</span>, <span class="function"><span class="keyword">function</span><span class="params">($scope)</span> {</span>
+        $scope.list = [{
+          id:<span class="number">1</span>,
+          title:<span class="string">"好无聊啊！！！"</span>,
+          content:<span class="string">"今天好无聊！！"</span>
+        },{
+          id:<span class="number">2</span>,
+          title:<span class="string">"生日了！！！"</span>,
+          content:<span class="string">"今天生日啦！！！！"</span>
+        }];
+
+        $scope.del = <span class="function"><span class="keyword">function</span><span class="params">(id)</span>{</span>
+         .....
+        };
+
+
+        $scope.add = <span class="function"><span class="keyword">function</span><span class="params">()</span>{</span>
+          $scope.manageShow =<span class="number">1</span>;
+          $scope.manageId=-<span class="number">1</span>;
+        }
+
+        $scope.update = <span class="function"><span class="keyword">function</span><span class="params">(id)</span>{</span>
+          $scope.manageShow =<span class="number">1</span>;
+          $scope.manageId=id;
+
+          <span class="keyword">for</span> (<span class="keyword">var</span> i = <span class="number">0</span>; i &lt; $scope.list.length; i++) {
+            <span class="keyword">if</span> ($scope.list[i][<span class="string">'id'</span>] == id) {
+              $scope.curTitle = $scope.list[i][<span class="string">'title'</span>];
+              $scope.curContent = $scope.list[i][<span class="string">'content'</span>];
+              <span class="keyword">break</span>;
+            };
+          
+          }
+          
+        }
+
+        $scope.manage =<span class="function"><span class="keyword">function</span><span class="params">()</span>{</span>
+          <span class="comment">//&gt;0代表编辑 -1代表增加</span>
+          <span class="keyword">if</span> ($scope.manageId==-<span class="number">1</span>) {
+            <span class="keyword">var</span> id = $scope.list.length;
+            <span class="keyword">var</span> obj = {
+              id:id,
+              title:$scope.curTitle,
+              content:$scope.curContent
+            }
+            $scope.list.push(obj);
+          }<span class="keyword">else</span>{
+            <span class="keyword">var</span> id = $scope.manageId;
+            <span class="keyword">var</span> obj = {
+              id:id,
+              title:$scope.curTitle,
+              content:$scope.curContent
+            }
+
+            <span class="keyword">for</span> (<span class="keyword">var</span> i = <span class="number">0</span>; i &lt; $scope.list.length; i++) {
+              <span class="keyword">if</span> ($scope.list[i][<span class="string">'id'</span>] == id) {
+                $scope.list[i] = obj;
+                <span class="keyword">break</span>;
+              };
+            
+            }
+
+          }
+        }
+
+    }]);
+    </span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">style</span> <span class="attribute">type</span>=<span class="value">"text/css"</span>&gt;</span><span class="css">
+
+  ....
+    </span><span class="tag">&lt;/<span class="title">style</span>&gt;</span>
+  <span class="tag">&lt;/<span class="title">head</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">body</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">div</span> <span class="attribute">class</span>=<span class="value">"wrap"</span> <span class="attribute">ng-app</span>=<span class="value">"posts"</span>&gt;</span>
+      <span class="tag">&lt;<span class="title">h2</span>&gt;</span>文章列表<span class="tag">&lt;/<span class="title">h2</span>&gt;</span>
+      <span class="tag">&lt;<span class="title">div</span> <span class="attribute">ng-controller</span>=<span class="value">"postCtrl"</span>&gt;</span>   
+      <span class="tag">&lt;<span class="title">input</span> <span class="attribute">type</span>=<span class="value">"text"</span> <span class="attribute">ng-model</span>=<span class="value">"search"</span> <span class="attribute">class</span>=<span class="value">"search"</span> <span class="attribute">placeholder</span>=<span class="value">"Search"</span>&gt;</span>    
+        <span class="tag">&lt;<span class="title">ul</span> <span class="attribute">class</span>=<span class="value">"list"</span>&gt;</span>
+          <span class="tag">&lt;<span class="title">li</span> <span class="attribute">ng-repeat</span>=<span class="value">"post in list | filter:search"</span>&gt;</span>
+            <span class="tag">&lt;<span class="title">span</span> <span class="attribute">style</span>=<span class="value">"color:#000;font-size:20px;"</span>&gt;</span>※{{post.title}}<span class="tag">&lt;/<span class="title">span</span>&gt;</span>
+             <span class="tag">&lt;<span class="title">a</span> <span class="attribute">href</span>=<span class="value">"javascript:;"</span> <span class="attribute">ng-click</span>=<span class="value">"del(post.id)"</span>&gt;</span>删除<span class="tag">&lt;/<span class="title">a</span>&gt;</span>
+             <span class="tag">&lt;<span class="title">a</span> <span class="attribute">href</span>=<span class="value">"javascript:;"</span> <span class="attribute">ng-click</span>=<span class="value">"update(post.id)"</span>&gt;</span>编辑<span class="tag">&lt;/<span class="title">a</span>&gt;</span>
+            <span class="tag">&lt;<span class="title">div</span>&gt;</span>{{post.content}}<span class="tag">&lt;/<span class="title">div</span>&gt;</span>
+          <span class="tag">&lt;/<span class="title">li</span>&gt;</span>
+        <span class="tag">&lt;/<span class="title">ul</span>&gt;</span>
+        <span class="tag">&lt;<span class="title">button</span> <span class="attribute">ng-click</span>=<span class="value">"add()"</span>&gt;</span>点我增加<span class="tag">&lt;/<span class="title">button</span>&gt;</span>
+
+      <span class="tag">&lt;<span class="title">div</span> <span class="attribute">class</span>=<span class="value">"post_manage"</span> <span class="attribute">ng-show</span>=<span class="value">"manageShow"</span>&gt;</span>
+        标题:<span class="tag">&lt;<span class="title">input</span> <span class="attribute">type</span>=<span class="value">"text"</span> <span class="attribute">ng-model</span>=<span class="value">"curTitle"</span> <span class="attribute">value</span>=<span class="value">"{{curTitle}}"</span>/&gt;</span>
+        内容:<span class="tag">&lt;<span class="title">input</span> <span class="attribute">type</span>=<span class="value">"text"</span> <span class="attribute">ng-model</span>=<span class="value">"curContent"</span> <span class="attribute">value</span>=<span class="value">"{{curContent}}"</span>/&gt;</span>
+        <span class="tag">&lt;<span class="title">a</span> <span class="attribute">href</span>=<span class="value">"javascript:;"</span> <span class="attribute">ng-click</span>=<span class="value">"manage()"</span>&gt;</span>确定<span class="tag">&lt;/<span class="title">a</span>&gt;</span>
+      <span class="tag">&lt;/<span class="title">div</span>&gt;</span>
+      <span class="tag">&lt;/<span class="title">div</span>&gt;</span>
+    <span class="tag">&lt;/<span class="title">div</span>&gt;</span>
+  <span class="tag">&lt;/<span class="title">body</span>&gt;</span>
+<span class="tag">&lt;/<span class="title">html</span>&gt;</span>
+</pre></td></tr></table></figure>
+
+<p>增加一个编辑按钮，点击调用update方法，然后设置manageShow打开下面的框，同时设置id，根据id筛选出数据，赋值curTitle curContent，设置完后，下面的那个div就会自动更新。这样点击确定后 manage会知道是在更新，于是检索后设置新的值。之后的html自动更新，一切就这么简单。</p>
+<h2 id="结语">结语</h2>
+<p>这样一个简单的文章发布系统就好了，可以看到非常方便快捷。几乎不再需要dom操作，一切只要更新数据就好了。<br>下面我会开始一个个介绍angular里的各种技术概念，然后不断的将新的概念融入到这个小例子里。最终实现一套高端大气上档次的博客系统，敬请期待。</p>
+<p>下面给出完整的一份代码：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+</pre></td><td class="code"><pre><span class="doctype">&lt;!doctype html&gt;</span>
+<span class="tag">&lt;<span class="title">html</span> &gt;</span>
+  <span class="tag">&lt;<span class="title">head</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">meta</span> <span class="attribute">charset</span>=<span class="value">"utf-8"</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">script</span> <span class="attribute">src</span>=<span class="value">"angular.js"</span>&gt;</span><span class="javascript"></span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"text/javascript"</span>&gt;</span><span class="javascript">
+    <span class="keyword">var</span> Post = angular.module(<span class="string">'posts'</span>,[]);
+ 
+    Post.controller(<span class="string">'postCtrl'</span>, [<span class="string">'$scope'</span>, <span class="function"><span class="keyword">function</span><span class="params">($scope)</span> {</span>
+        $scope.list = [{
+          id:<span class="number">1</span>,
+          title:<span class="string">"好无聊啊！！！"</span>,
+          content:<span class="string">"今天好无聊！！"</span>
+        },{
+          id:<span class="number">2</span>,
+          title:<span class="string">"生日了！！！"</span>,
+          content:<span class="string">"今天生日啦！！！！"</span>
+        }];
+
+        $scope.del = <span class="function"><span class="keyword">function</span><span class="params">(id)</span>{</span>
+          <span class="keyword">var</span> index = -<span class="number">1</span>;
+          <span class="keyword">for</span> (<span class="keyword">var</span> i = <span class="number">0</span>; i &lt; $scope.list.length; i++) {
+            <span class="keyword">if</span> ($scope.list[i][<span class="string">'id'</span>] == id) {
+              index = i;
+              <span class="keyword">break</span>;
+            };
+          
+          }
+          $scope.list.splice(index,<span class="number">1</span>);
+        };
+
+
+        $scope.add = <span class="function"><span class="keyword">function</span><span class="params">()</span>{</span>
+          $scope.manageShow =<span class="number">1</span>;
+          $scope.manageId=-<span class="number">1</span>;
+          $scope.curTitle = <span class="string">""</span>;
+          $scope.curContent = <span class="string">""</span>;
+
+        }
+
+        $scope.update = <span class="function"><span class="keyword">function</span><span class="params">(id)</span>{</span>
+          $scope.manageShow =<span class="number">1</span>;
+          $scope.manageId=id;
+
+          <span class="keyword">for</span> (<span class="keyword">var</span> i = <span class="number">0</span>; i &lt; $scope.list.length; i++) {
+            <span class="keyword">if</span> ($scope.list[i][<span class="string">'id'</span>] == id) {
+              $scope.curTitle = $scope.list[i][<span class="string">'title'</span>];
+              $scope.curContent = $scope.list[i][<span class="string">'content'</span>];
+              <span class="keyword">break</span>;
+            };
+          
+          }
+          
+        }
+
+        $scope.manage =<span class="function"><span class="keyword">function</span><span class="params">()</span>{</span>
+          <span class="comment">//&gt;0代表编辑 -1代表增加</span>
+          <span class="keyword">if</span> ($scope.manageId==-<span class="number">1</span>) {
+            <span class="keyword">var</span> id = $scope.list.length;
+            <span class="keyword">var</span> obj = {
+              id:id,
+              title:$scope.curTitle,
+              content:$scope.curContent
+            }
+            $scope.list.push(obj);
+          }<span class="keyword">else</span>{
+            <span class="keyword">var</span> id = $scope.manageId;
+            <span class="keyword">var</span> obj = {
+              id:id,
+              title:$scope.curTitle,
+              content:$scope.curContent
+            }
+
+            <span class="keyword">for</span> (<span class="keyword">var</span> i = <span class="number">0</span>; i &lt; $scope.list.length; i++) {
+              <span class="keyword">if</span> ($scope.list[i][<span class="string">'id'</span>] == id) {
+                $scope.list[i] = obj;
+                <span class="keyword">break</span>;
+              };
+            
+            }
+
+          }
+          $scope.manageShow = <span class="number">0</span>;
+        }
+
+    }]);
+    </span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">style</span> <span class="attribute">type</span>=<span class="value">"text/css"</span>&gt;</span><span class="css">
+
+    <span class="class">.wrap</span><span class="rules">{
+      <span class="rule"><span class="attribute">margin</span>:<span class="value"> <span class="number">0</span> auto</span></span>;
+      <span class="rule"><span class="attribute">width</span>:<span class="value"> <span class="number">500</span>px</span></span>;
+    <span class="rule">}</span></span>
+    <span class="class">.search</span><span class="rules">{
+      <span class="rule"><span class="attribute">border-radius</span>:<span class="value"> <span class="number">5</span>px</span></span>;
+      <span class="rule"><span class="attribute">border</span>:<span class="value"> <span class="number">1</span>px solid <span class="hexcolor">#999</span></span></span>;
+      <span class="rule"><span class="attribute">width</span>:<span class="value"> <span class="number">200</span>px</span></span>;
+    <span class="rule">}</span></span>
+    <span class="class">.list</span><span class="rules">{
+      <span class="rule"><span class="attribute">width</span>:<span class="value"> <span class="number">200</span>px</span></span>;
+      <span class="rule"><span class="attribute">padding-left</span>:<span class="value"> <span class="number">0</span>px</span></span>;
+    <span class="rule">}</span></span>
+    <span class="class">.list</span> <span class="tag">li</span><span class="rules">{
+      <span class="rule"><span class="attribute">list-style</span>:<span class="value"> none</span></span>;
+      <span class="rule"><span class="attribute">margin-bottom</span>:<span class="value"> <span class="number">20</span>px</span></span>;
+      <span class="rule"><span class="attribute">color</span>:<span class="value"> <span class="hexcolor">#000</span></span></span>;
+      <span class="rule"><span class="attribute">width</span>:<span class="value"> <span class="number">300</span>px</span></span>;
+    <span class="rule">}</span></span>
+    <span class="class">.list</span> <span class="tag">li</span> <span class="tag">span</span><span class="rules">{
+      <span class="rule"><span class="attribute">color</span>:<span class="value"> <span class="hexcolor">#666</span></span></span>;
+      <span class="rule"><span class="attribute">font-size</span>:<span class="value"> <span class="number">16</span>px</span></span>;
+      <span class="rule"><span class="attribute">font-weight</span>:<span class="value"> bold</span></span>;
+
+      
+    <span class="rule">}</span></span>
+    <span class="class">.list</span> <span class="tag">li</span> <span class="tag">div</span><span class="rules">{
+      <span class="rule"><span class="attribute">padding-top</span>:<span class="value"> <span class="number">10</span>px</span></span>;
+      <span class="rule"><span class="attribute">color</span>:<span class="value"> <span class="hexcolor">#999</span></span></span>;
+      <span class="rule"><span class="attribute">font-size</span>:<span class="value"> <span class="number">14</span>px</span></span>;
+    <span class="rule">}</span></span>
+
+
+    </span><span class="tag">&lt;/<span class="title">style</span>&gt;</span>
+  <span class="tag">&lt;/<span class="title">head</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">body</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">div</span> <span class="attribute">class</span>=<span class="value">"wrap"</span> <span class="attribute">ng-app</span>=<span class="value">"posts"</span>&gt;</span>
+      <span class="tag">&lt;<span class="title">h2</span>&gt;</span>文章列表<span class="tag">&lt;/<span class="title">h2</span>&gt;</span>
+      <span class="tag">&lt;<span class="title">div</span> <span class="attribute">ng-controller</span>=<span class="value">"postCtrl"</span>&gt;</span>   
+      <span class="tag">&lt;<span class="title">input</span> <span class="attribute">type</span>=<span class="value">"text"</span> <span class="attribute">ng-model</span>=<span class="value">"search"</span> <span class="attribute">class</span>=<span class="value">"search"</span> <span class="attribute">placeholder</span>=<span class="value">"Search"</span>&gt;</span>    
+        <span class="tag">&lt;<span class="title">ul</span> <span class="attribute">class</span>=<span class="value">"list"</span>&gt;</span>
+          <span class="tag">&lt;<span class="title">li</span> <span class="attribute">ng-repeat</span>=<span class="value">"post in list | filter:search"</span>&gt;</span>
+            <span class="tag">&lt;<span class="title">span</span> <span class="attribute">style</span>=<span class="value">"color:#000;font-size:20px;"</span>&gt;</span>※{{post.title}}<span class="tag">&lt;/<span class="title">span</span>&gt;</span>
+             <span class="tag">&lt;<span class="title">a</span> <span class="attribute">href</span>=<span class="value">"javascript:;"</span> <span class="attribute">ng-click</span>=<span class="value">"del(post.id)"</span>&gt;</span>删除<span class="tag">&lt;/<span class="title">a</span>&gt;</span>
+             <span class="tag">&lt;<span class="title">a</span> <span class="attribute">href</span>=<span class="value">"javascript:;"</span> <span class="attribute">ng-click</span>=<span class="value">"update(post.id)"</span>&gt;</span>编辑<span class="tag">&lt;/<span class="title">a</span>&gt;</span>
+            <span class="tag">&lt;<span class="title">div</span>&gt;</span>{{post.content}}<span class="tag">&lt;/<span class="title">div</span>&gt;</span>
+          <span class="tag">&lt;/<span class="title">li</span>&gt;</span>
+        <span class="tag">&lt;/<span class="title">ul</span>&gt;</span>
+        <span class="tag">&lt;<span class="title">button</span> <span class="attribute">ng-click</span>=<span class="value">"add()"</span>&gt;</span>点我增加<span class="tag">&lt;/<span class="title">button</span>&gt;</span>
+
+      <span class="tag">&lt;<span class="title">div</span> <span class="attribute">class</span>=<span class="value">"post_manage"</span> <span class="attribute">ng-show</span>=<span class="value">"manageShow"</span>&gt;</span>
+        标题:<span class="tag">&lt;<span class="title">input</span> <span class="attribute">type</span>=<span class="value">"text"</span> <span class="attribute">ng-model</span>=<span class="value">"curTitle"</span> <span class="attribute">value</span>=<span class="value">"{{curTitle}}"</span>/&gt;</span>
+        内容:<span class="tag">&lt;<span class="title">input</span> <span class="attribute">type</span>=<span class="value">"text"</span> <span class="attribute">ng-model</span>=<span class="value">"curContent"</span> <span class="attribute">value</span>=<span class="value">"{{curContent}}"</span>/&gt;</span>
+        <span class="tag">&lt;<span class="title">a</span> <span class="attribute">href</span>=<span class="value">"javascript:;"</span> <span class="attribute">ng-click</span>=<span class="value">"manage()"</span>&gt;</span>确定<span class="tag">&lt;/<span class="title">a</span>&gt;</span>
+      <span class="tag">&lt;/<span class="title">div</span>&gt;</span>
+      <span class="tag">&lt;/<span class="title">div</span>&gt;</span>
+    <span class="tag">&lt;/<span class="title">div</span>&gt;</span>
+  <span class="tag">&lt;/<span class="title">body</span>&gt;</span>
+<span class="tag">&lt;/<span class="title">html</span>&gt;</span>
+</pre></td></tr></table></figure>
+
+  
+	</div>
+		<footer class="article-footer clearfix">
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/angularjs/">angularjs</a>
+  </div>
+
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/angularjs记录/">angularjs记录</a>
+</div>
+
+
+
+<div class="article-share" id="share">
+
+  <div data-url="http://purplebamboo.github.com/2013/09/22/angularjs-eg2/" data-title="angularjs博客的制作（二） | blog of purplebamboo" data-tsina="null" class="share clearfix">
+  </div>
+
+</div>
+</footer>   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2013/10/03/angularjs-controller/" title="angularjs controllers的使用">
+  <strong>PREVIOUS:</strong><br/>
+  <span>
+  angularjs controllers的使用</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2013/09/19/angularjs-eg1/"  title="angularjs博客的制作（一）">
+ <strong>NEXT:</strong><br/> 
+ <span>angularjs博客的制作（一）
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section class="comment">
+	<div class="ds-thread"></div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+  <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#删除功能"><span class="toc-number">1.</span> <span class="toc-text">删除功能</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#增加功能的实现"><span class="toc-number">2.</span> <span class="toc-text">增加功能的实现</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#修改的实现"><span class="toc-number">3.</span> <span class="toc-text">修改的实现</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#结语"><span class="toc-number">4.</span> <span class="toc-text">结语</span></a></li></ol>
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+			<li><a href="/categories/angularjs记录/" title="angularjs记录">angularjs记录<sup>9</sup></a></li>
+		
+			<li><a href="/categories/css/" title="css">css<sup>1</sup></a></li>
+		
+			<li><a href="/categories/iconfont技术/" title="iconfont技术">iconfont技术<sup>1</sup></a></li>
+		
+			<li><a href="/categories/javascript/" title="javascript">javascript<sup>15</sup></a></li>
+		
+			<li><a href="/categories/javascript/nodejs/" title="nodejs">nodejs<sup>2</sup></a></li>
+		
+			<li><a href="/categories/从零单排/" title="从零单排">从零单排<sup>1</sup></a></li>
+		
+			<li><a href="/categories/各种知识点记录/" title="各种知识点记录">各种知识点记录<sup>1</sup></a></li>
+		
+			<li><a href="/categories/javascript/源码分析/" title="源码分析">源码分析<sup>5</sup></a></li>
+		
+			<li><a href="/categories/系统环境/" title="系统环境">系统环境<sup>1</sup></a></li>
+		
+			<li><a href="/categories/angularjs记录/翻译/" title="翻译">翻译<sup>1</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			<li><a href="/tags/Filters/" title="Filters">Filters<sup>1</sup></a></li>
+		
+			<li><a href="/tags/analyze/" title="analyze">analyze<sup>1</sup></a></li>
+		
+			<li><a href="/tags/angular/" title="angular">angular<sup>2</sup></a></li>
+		
+			<li><a href="/tags/angularjs/" title="angularjs">angularjs<sup>7</sup></a></li>
+		
+			<li><a href="/tags/ast/" title="ast">ast<sup>1</sup></a></li>
+		
+			<li><a href="/tags/async/" title="async">async<sup>1</sup></a></li>
+		
+			<li><a href="/tags/border-shadow/" title="border-shadow">border-shadow<sup>1</sup></a></li>
+		
+			<li><a href="/tags/chunked/" title="chunked">chunked<sup>1</sup></a></li>
+		
+			<li><a href="/tags/class/" title="class">class<sup>1</sup></a></li>
+		
+			<li><a href="/tags/co/" title="co">co<sup>2</sup></a></li>
+		
+			<li><a href="/tags/comet/" title="comet">comet<sup>1</sup></a></li>
+		
+			<li><a href="/tags/controllers/" title="controllers">controllers<sup>1</sup></a></li>
+		
+			<li><a href="/tags/css3/" title="css3">css3<sup>1</sup></a></li>
+		
+			<li><a href="/tags/generator/" title="generator">generator<sup>1</sup></a></li>
+		
+			<li><a href="/tags/git/" title="git">git<sup>1</sup></a></li>
+		
+			<li><a href="/tags/gulp/" title="gulp">gulp<sup>1</sup></a></li>
+		
+			<li><a href="/tags/html/" title="html">html<sup>1</sup></a></li>
+		
+			<li><a href="/tags/iconfont/" title="iconfont">iconfont<sup>1</sup></a></li>
+		
+			<li><a href="/tags/javascript/" title="javascript">javascript<sup>15</sup></a></li>
+		
+			<li><a href="/tags/koa/" title="koa">koa<sup>2</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+      <li><a href="http://ued.taobao.com/" target="_blank">淘宝UED</a> </li>            <li><a href="http://www.aliued.com/" target="_blank">Alibaba国际站UED</a> </li>            <li><a href="http://china.aliued.com/" target="_blank">Alibaba中文站UED</a> </li>            <li><a href="http://ued.alipay.com/" target="_blank"> 支付宝UED</a> </li>            <li><a href="http://ued.tmall.com/" target="_blank">天猫UED</a> </li><li><a href="http://ur.alibaba-inc.com">阿里用户体验中心</a> </li>	 <li><a href="http://www.uisdc.com" target="_blank">优秀网页设计</a> </li>
+      
+    </ul>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+		<p class="copyright">Powered by <a href="http://zespia.tw/hexo/" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/A-limon/pacman" target="_blank" title="Pacman">Pacman</a> © 2015 
+		
+		<a href="http://purplebamboo.github.com" target="_blank" title="purplebamboo">purplebamboo</a>
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.1.0.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else
+    {
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      h  = $('article h2')
+      ah = $('article h2'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  if(ah.length==0){
+    t.css('display','none');
+  }else{
+    c.click(function(){
+      ta.css('display', 'block').addClass('fadeIn');
+    });
+    o.click(function(){
+      ta.css('display', 'none');
+    });
+    $(window).scroll(function(){
+      ta.css("top",Math.max(140,320-$(this).scrollTop()));
+    });
+  };
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#share"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="#textlogo" class="article-back-to-top" title="Top"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="QRcode"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="Weibo"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"cherishpeace"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+
+
+
+
+<script type="text/javascript">
+  $(function(){
+    window.onscroll = function(){
+      //console.log($(document).scrollTop()+"px")
+      $('.background-container .bg-dy2').css('backgroundPosition','0 '+$(document).scrollTop()+"px");
+    }
+
+  })
+</script>
+<div class="background-container">
+  <div class="bg-dy1">
+
+  </div>
+  <div class="bg-dy2">
+
+  </div>
+
+</div
+
+  </body>
+</html>

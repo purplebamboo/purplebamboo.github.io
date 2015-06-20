@@ -1,0 +1,452 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>前端开发环境过滤器 | blog of purplebamboo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
+    
+    <meta name="author" content="purplebamboo">
+    
+    <meta name="description" content="作为一个前端，经常被各种环境困扰。古人说穷则变变则通。最近实在是忍受不了之前开发环境的总总弊端，下定决心好好整了整。
+那些年被虐待的经历
+鄙人公司目前后端开发还是主要以java为主，使用的是spring的架构。之前的开发情况是，前端切好静态页面，给开发去套vm。
+显然这是一种特别效率低下的事情。开发">
+    
+    
+    
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/pacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/pacman.jpg">
+    
+    <link rel="stylesheet" href="/css/style.css" type="text/css">
+</head>
+
+  <body>
+    <header>
+      <div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.svg" alt="blog of purplebamboo" title="blog of purplebamboo"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="blog of purplebamboo">blog of purplebamboo</a></h1>
+				<h2 class="blog-motto">dota诚可贵，coding价更高，若为女朋友，二者皆可抛。</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">首页</a></li>
+					
+						<li><a href="/archives">归档</a></li>
+					
+						<li><a href="/categories">分类</a></li>
+					
+						<li><a href="/about">关于</a></li>
+					
+					<li>
+					
+					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="text" id="search" name="q" autocomplete="off" maxlength="20" placeholder="搜索" />
+						<input type="hidden" name="q" value="site:purplebamboo.github.com">
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2015/02/16/qfilter/" title="前端开发环境过滤器" itemprop="url">前端开发环境过滤器</a>
+  </h1>
+  <p class="article-author">By
+    
+      <a href="http://purplebamboo.github.com" title="purplebamboo">purplebamboo</a>
+    </p>
+  <p class="article-time">
+    <time datetime="2015-02-16T06:35:04.000Z" itemprop="datePublished">2月 16 2015</time>
+    更新日期:<time datetime="2015-02-16T06:37:09.000Z" itemprop="dateModified">2月 16 2015</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#那些年被虐待的经历"><span class="toc-number">1.</span> <span class="toc-text">那些年被虐待的经历</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#忍无可忍无需再忍"><span class="toc-number">2.</span> <span class="toc-text">忍无可忍无需再忍</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#想的更多点"><span class="toc-number">3.</span> <span class="toc-text">想的更多点</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#结语"><span class="toc-number">4.</span> <span class="toc-text">结语</span></a></li></ol>
+		</div>
+		
+		<p>作为一个前端，经常被各种环境困扰。古人说穷则变变则通。最近实在是忍受不了之前开发环境的总总弊端，下定决心好好整了整。</p>
+<h2 id="那些年被虐待的经历">那些年被虐待的经历</h2>
+<p>鄙人公司目前后端开发还是主要以java为主，使用的是spring的架构。之前的开发情况是，前端切好静态页面，给开发去套vm。</p>
+<p>显然这是一种特别效率低下的事情。开发其实很多时候不能理解我们的html结构，所以多数时候我们得跑到开发旁边，一起改vm。</p>
+<p>后来开发说了，他们不管vm了，让我们写。好啊，我们写还自由点。可是我还是too young too simple。写vm，我们只能在本地跑java环境，这个包，那个包。这个依赖，那个依赖。经常是开发svn升级了一个包，我们这边就跑不起来环境了，然后又是各种找开发来帮忙整环境，苦不开言。这里深深鄙视下java，大部分时间都花在打包还有环境调试上了。</p>
+<p>再后来我们想了个办法，嗯，有那种持续集成环境，就是一个线上虚拟机。我们不用本地跑vm了。不过问题依旧，经常性的环境挂掉。而且最大的问题是每次svn改了vm。都要去发布下。</p>
+<p>再后来不能忍了，团队的大牛推荐了<a href="http://purplebamboo.github.io/2014/05/14/start_with_vagrant/" target="_blank">vagrant</a>。可以本地跑虚拟机，采用分发的方式。开发跑vagrant。然后打包发给我们，这样环境就一模一样。而且是本地虚拟机，所以改了vm立马生效。听起来很美好，可是再次证明现实很骨感，环境还是经常性的挂掉，因为开发用的windows，而我们vagrant里面的跑的linux，还是不少差别。在开发帮忙调试了几次环境后，发现问题依旧。也越来越懒得帮我们看环境了。</p>
+<p>再后来，又回到了原始的境地，前端跑到开发旁边调vm。调js。</p>
+<h2 id="忍无可忍无需再忍">忍无可忍无需再忍</h2>
+<p>就这样，我们一直忍受着这种开发模式。因为nodejs如今如火如荼的进行着，而公司内部各个bu都在考虑用node做前后端分离，我们一直期待着有一天，把view层抽出来。这样就不用再跑java环境了。java只提供http数据接口。整个渲染层交给node，由我们自己把控。还可以自己模拟数据。</p>
+<p>想想还是有点小激动呢。</p>
+<p>但是。。。现实还是再一次拍死了我们。因为开发，运维对node还是有点抵触的：</p>
+<ul>
+<li>认为这么新的东西。稳定性没有保障。</li>
+<li>而且vm用的好好的，干啥要换。使用了node中间层反而增加了前端的工作量，本来就资源不够了。</li>
+<li>对开发其实并没有特别的好处，只是方便了前端把控环境。</li>
+</ul>
+<p>于是在我们老大跟他们讨论了几次后，node中间层一直在做ing。嗯，这个做的过程不知道要持续多久。</p>
+<p>作为小p，推动不了这么大的全局性的改变。但是环境问题真的受！够！了！</p>
+<p>偶然的情况下发现了<a href="https://github.com/shepherdwind/velocity.js" target="_blank">velocityjs</a>这个项目。于是想着完全可以用node来模拟java环境嘛，把vm跑起来不就好了。</p>
+<p>说干就干，于是在后来一个比较小的模板展示的项目里，使用express搭建了一套环境。把vm跑起来了。并且vm上面的那些变量都是我们自己使用json模拟。</p>
+<p>于是我们终于解脱了，不再需要跑java环境，还可以脱离java。把功能完全写好，各个逻辑都使用模拟数据验证完，然后跟开发联调基本就是分分种的事。</p>
+<h2 id="想的更多点">想的更多点</h2>
+<p>虽然我们在小的项目里尝试了。但是对于比较复杂的项目，还是觉得整体改造比较困难。后来商量了下，其实可以做一个命令行工具。进行一些简单的配置就可以把vm跑起来。没错感觉就是个启动服务的工具了。</p>
+<p>其实除了vm渲染的问题，我们还面对不少困难。</p>
+<ol>
+<li>本地静态服务，之前都是本地起一个nginx。来新人了，都得教半天配置。另外线上的静态资源有时是支持combo的。我们跑vm的时候都得把combo的资源人肉切分。</li>
+<li>项目一般都是使用less编写。开发的时候需要使用gulp跑一个watch，或者使用<a href="http://koala-app.com/index-zh.html" target="_blank">koala</a>这种工具。</li>
+<li>ajax请求无法模拟，做静态页面的时候。都是自己写个简单的php脚本，打出一些简单的数据，来模拟。</li>
+<li>在线上环境调试时，不方便。线上引用的都是压缩的文件。虽然可以通过url变量控制引用不压缩的。但是修改代码的时候，还是需要本地改好，打包发cdn，一看效果不对又要回滚。后来想到用<a href="http://cssha.com/reres/" target="_blank">reres</a>来映射线上js到本地。可是combo的资源映射起来就难办了。另外我们前端使用了一种打包技术，将html模板打包到js里面，所以直接映射js就少了模板。总之一直是一个头两个大。</li>
+</ol>
+<p>总体来说，我们的环境太零散，太凌乱。用起来也是各种困难。</p>
+<p>所以想着能不能搞个工具解决所有这些问题呢？</p>
+<p>正好那段时间一直在玩koa。突然发现koa天生适合解决这个问题。于是说干就敢，制作了<a href="https://github.com/purplebamboo/qfilter" target="_blank">qfilter</a>这个工具。</p>
+<p>说白了使用koa开一个本地服务命令行工具：</p>
+<ol>
+<li>开发一个静态资源中间件用来处理js，css，html请求，支持combo。</li>
+<li>开发一个vm中间件，当请求是vm模板时就使用velocityjs渲染vm后返回。</li>
+<li>开发一个ajax中间件，处理所有的ajax请求。</li>
+<li>开发一个rewrite中间件来改写请求的url。</li>
+<li>开发一个less中间件实时编译less。</li>
+</ol>
+<p>我们看上面说的：</p>
+<p>第一个问题，静态资源中间件就解决了。</p>
+<p>第二个问题，先使用rewrite中间件来改写请求的路径url，把css的请求映射到对应的less文件，并且到下一个less中间件时实时编译返回的内容返回。性能上并没有啥大问题。</p>
+<p>第三个问题，ajax中间件搞定，只需要指定个目录，写一些模拟数据就好了。</p>
+<p>第四个问题，因为通过上面的一系列中间件，可以使本地环境跟线上环境一模一样。我们只需要使用switchsharp这种代理软件把线上的js请求都映射到本地的服务，线上的css请求会映射到本地服务，本地服务再请求对应的less，再实时编译返回。线上的combojs请求，映射到本地服务，本地服务自动分割合并不同的js返回给浏览器。并且是立即修改，立即生效，调试变得异常简单。</p>
+<p>整体上的思路，就是线上线下的页面都是一样的，线上请求什么，线下开发也是一样的。但是请求过来了，返回什么内容是本地服务说了算，请求css，我映射到对应的less并且编译返回。请求vm，我渲染后再返回。只不过线上是直接请求的打包生成好的css。请求的也是java渲染好的vm。而这些本地的服务都能百分百模拟。</p>
+<p>于是前端开发的时候，不需要跑java环境了，如果前面的人配置好了各个参数。新人只需要跑到环境根目录下运行 <code>qf s</code> 于是世界清静了。所有的环境都在这一行命令行里面了。环境不再碎片化。而且线上线下一套环境，无缝切换。调试也更加简单。解放了大量的劳动力。</p>
+<p>最终产出了这个基于koa的工具  <a href="https://github.com/purplebamboo/qfilter" target="_blank">qfilter</a></p>
+<h2 id="结语">结语</h2>
+<p>任何事情，不要期望着未来遥远的解决方案，与其等遥远的阳光，还不如先想办法解决当前寒冷的问题。将来node中间件必将彻底解决环境问题，解决前后端分离问题。其实我这种反而是旁门左道了，但是我觉得解决问题才是最重要的。更何况，其实qfilter不只是解决了vm的渲染问题了。</p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/node/">node</a><a href="/tags/环境/">环境</a>
+  </div>
+
+
+
+
+<div class="article-share" id="share">
+
+  <div data-url="http://purplebamboo.github.com/2015/02/16/qfilter/" data-title="前端开发环境过滤器 | blog of purplebamboo" data-tsina="null" class="share clearfix">
+  </div>
+
+</div>
+</footer>   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2015/03/16/javascript-component/" title="javascript组件化">
+  <strong>PREVIOUS:</strong><br/>
+  <span>
+  javascript组件化</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2015/01/17/javascript-module/"  title="javascript模块加载器实践">
+ <strong>NEXT:</strong><br/> 
+ <span>javascript模块加载器实践
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section class="comment">
+	<div class="ds-thread"></div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+  <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#那些年被虐待的经历"><span class="toc-number">1.</span> <span class="toc-text">那些年被虐待的经历</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#忍无可忍无需再忍"><span class="toc-number">2.</span> <span class="toc-text">忍无可忍无需再忍</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#想的更多点"><span class="toc-number">3.</span> <span class="toc-text">想的更多点</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#结语"><span class="toc-number">4.</span> <span class="toc-text">结语</span></a></li></ol>
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+			<li><a href="/categories/angularjs记录/" title="angularjs记录">angularjs记录<sup>9</sup></a></li>
+		
+			<li><a href="/categories/css/" title="css">css<sup>1</sup></a></li>
+		
+			<li><a href="/categories/iconfont技术/" title="iconfont技术">iconfont技术<sup>1</sup></a></li>
+		
+			<li><a href="/categories/javascript/" title="javascript">javascript<sup>15</sup></a></li>
+		
+			<li><a href="/categories/javascript/nodejs/" title="nodejs">nodejs<sup>2</sup></a></li>
+		
+			<li><a href="/categories/从零单排/" title="从零单排">从零单排<sup>1</sup></a></li>
+		
+			<li><a href="/categories/各种知识点记录/" title="各种知识点记录">各种知识点记录<sup>1</sup></a></li>
+		
+			<li><a href="/categories/javascript/源码分析/" title="源码分析">源码分析<sup>5</sup></a></li>
+		
+			<li><a href="/categories/系统环境/" title="系统环境">系统环境<sup>1</sup></a></li>
+		
+			<li><a href="/categories/angularjs记录/翻译/" title="翻译">翻译<sup>1</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			<li><a href="/tags/Filters/" title="Filters">Filters<sup>1</sup></a></li>
+		
+			<li><a href="/tags/analyze/" title="analyze">analyze<sup>1</sup></a></li>
+		
+			<li><a href="/tags/angular/" title="angular">angular<sup>2</sup></a></li>
+		
+			<li><a href="/tags/angularjs/" title="angularjs">angularjs<sup>7</sup></a></li>
+		
+			<li><a href="/tags/ast/" title="ast">ast<sup>1</sup></a></li>
+		
+			<li><a href="/tags/async/" title="async">async<sup>1</sup></a></li>
+		
+			<li><a href="/tags/border-shadow/" title="border-shadow">border-shadow<sup>1</sup></a></li>
+		
+			<li><a href="/tags/chunked/" title="chunked">chunked<sup>1</sup></a></li>
+		
+			<li><a href="/tags/class/" title="class">class<sup>1</sup></a></li>
+		
+			<li><a href="/tags/co/" title="co">co<sup>2</sup></a></li>
+		
+			<li><a href="/tags/comet/" title="comet">comet<sup>1</sup></a></li>
+		
+			<li><a href="/tags/controllers/" title="controllers">controllers<sup>1</sup></a></li>
+		
+			<li><a href="/tags/css3/" title="css3">css3<sup>1</sup></a></li>
+		
+			<li><a href="/tags/generator/" title="generator">generator<sup>1</sup></a></li>
+		
+			<li><a href="/tags/git/" title="git">git<sup>1</sup></a></li>
+		
+			<li><a href="/tags/gulp/" title="gulp">gulp<sup>1</sup></a></li>
+		
+			<li><a href="/tags/html/" title="html">html<sup>1</sup></a></li>
+		
+			<li><a href="/tags/iconfont/" title="iconfont">iconfont<sup>1</sup></a></li>
+		
+			<li><a href="/tags/javascript/" title="javascript">javascript<sup>15</sup></a></li>
+		
+			<li><a href="/tags/koa/" title="koa">koa<sup>2</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+      <li><a href="http://ued.taobao.com/" target="_blank">淘宝UED</a> </li>            <li><a href="http://www.aliued.com/" target="_blank">Alibaba国际站UED</a> </li>            <li><a href="http://china.aliued.com/" target="_blank">Alibaba中文站UED</a> </li>            <li><a href="http://ued.alipay.com/" target="_blank"> 支付宝UED</a> </li>            <li><a href="http://ued.tmall.com/" target="_blank">天猫UED</a> </li><li><a href="http://ur.alibaba-inc.com">阿里用户体验中心</a> </li>	 <li><a href="http://www.uisdc.com" target="_blank">优秀网页设计</a> </li>
+      
+    </ul>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+		<p class="copyright">Powered by <a href="http://zespia.tw/hexo/" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/A-limon/pacman" target="_blank" title="Pacman">Pacman</a> © 2015 
+		
+		<a href="http://purplebamboo.github.com" target="_blank" title="purplebamboo">purplebamboo</a>
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.1.0.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else
+    {
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      h  = $('article h2')
+      ah = $('article h2'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  if(ah.length==0){
+    t.css('display','none');
+  }else{
+    c.click(function(){
+      ta.css('display', 'block').addClass('fadeIn');
+    });
+    o.click(function(){
+      ta.css('display', 'none');
+    });
+    $(window).scroll(function(){
+      ta.css("top",Math.max(140,320-$(this).scrollTop()));
+    });
+  };
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#share"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="#textlogo" class="article-back-to-top" title="Top"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="QRcode"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="Weibo"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"cherishpeace"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+
+
+
+
+<script type="text/javascript">
+  $(function(){
+    window.onscroll = function(){
+      //console.log($(document).scrollTop()+"px")
+      $('.background-container .bg-dy2').css('backgroundPosition','0 '+$(document).scrollTop()+"px");
+    }
+
+  })
+</script>
+<div class="background-container">
+  <div class="bg-dy1">
+
+  </div>
+  <div class="bg-dy2">
+
+  </div>
+
+</div
+
+  </body>
+</html>

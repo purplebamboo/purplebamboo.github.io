@@ -1,0 +1,577 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>koa源码分析系列（一）generator | blog of purplebamboo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
+    
+    <meta name="author" content="purplebamboo">
+    
+    <meta name="description" content="koa是TJ大神新一代的中间件框架，本系列旨在一步一步实现koa的功能，包括下面这些。
+
+koa源码分析系列（一）generator
+koa源码分析系列（二）co的实现
+koa源码分析系列（三）koa的中间件机制实现
+koa源码分析系列（四）co-4.0新变化
+
+koa基于co实现，co又是使用了e">
+    
+    
+    
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/pacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/pacman.jpg">
+    
+    <link rel="stylesheet" href="/css/style.css" type="text/css">
+</head>
+
+  <body>
+    <header>
+      <div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.svg" alt="blog of purplebamboo" title="blog of purplebamboo"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="blog of purplebamboo">blog of purplebamboo</a></h1>
+				<h2 class="blog-motto">dota诚可贵，coding价更高，若为女朋友，二者皆可抛。</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">首页</a></li>
+					
+						<li><a href="/archives">归档</a></li>
+					
+						<li><a href="/categories">分类</a></li>
+					
+						<li><a href="/about">关于</a></li>
+					
+					<li>
+					
+					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="text" id="search" name="q" autocomplete="off" maxlength="20" placeholder="搜索" />
+						<input type="hidden" name="q" value="site:purplebamboo.github.com">
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2014/05/24/koa-source-analytics-1/" title="koa源码分析系列（一）generator" itemprop="url">koa源码分析系列（一）generator</a>
+  </h1>
+  <p class="article-author">By
+    
+      <a href="http://purplebamboo.github.com" title="purplebamboo">purplebamboo</a>
+    </p>
+  <p class="article-time">
+    <time datetime="2014-05-24T11:52:26.000Z" itemprop="datePublished">5月 24 2014</time>
+    更新日期:<time datetime="2015-01-17T14:23:15.000Z" itemprop="dateModified">1月 17 2015</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#generator的es6规范。"><span class="toc-number">1.</span> <span class="toc-text">generator的es6规范。</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#进阶知识：generator的Delegating_yield"><span class="toc-number">2.</span> <span class="toc-text">进阶知识：generator的Delegating yield</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#结语"><span class="toc-number">3.</span> <span class="toc-text">结语</span></a></li></ol>
+		</div>
+		
+		<p>koa是TJ大神新一代的中间件框架，本系列旨在一步一步实现koa的功能，包括下面这些。</p>
+<ol>
+<li><a href="/2014/05/24/koa-source-analytics-1/">koa源码分析系列（一）generator</a></li>
+<li><a href="/2014/05/24/koa-source-analytics-2/">koa源码分析系列（二）co的实现</a></li>
+<li><a href="/2014/05/24/koa-source-analytics-3/">koa源码分析系列（三）koa的中间件机制实现</a></li>
+<li><a href="/2015/01/16/koa-source-analytics-4/">koa源码分析系列（四）co-4.0新变化</a></li>
+</ol>
+<p>koa基于co实现，co又是使用了es6的generator特性，所以，没错这个特性支持很一般。<br>有下面几种办法体验generator：</p>
+<ul>
+<li>node v0.11 可以使用 (node —harmony)</li>
+<li>使用gnode来使用，不过据说性能一般</li>
+<li>使用chrome体验，打开chrome://flags/, 搜索harmony, 启用,重启chrome即可。</li>
+</ul>
+<h2 id="generator的es6规范。">generator的es6规范。</h2>
+<p>什么是generator？generator是javascript1.7的内容，是 ECMA-262 在第六个版本，即我们说的 Harmony 中所提出的新特性。</p>
+<p>首先我们先定义一个generatorFunction：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+</pre></td><td class="code"><pre>function<span class="subst">*</span> start() {
+  <span class="built_in">var</span> a <span class="subst">=</span> <span class="keyword">yield</span> <span class="string">'start'</span>;
+  console<span class="built_in">.</span><span class="keyword">log</span>(a);
+  <span class="built_in">var</span> b <span class="subst">=</span> <span class="keyword">yield</span> <span class="string">'running'</span>;
+  console<span class="built_in">.</span><span class="keyword">log</span>(b);
+  <span class="built_in">var</span> c <span class="subst">=</span> <span class="keyword">yield</span> <span class="string">'end'</span>;
+  console<span class="built_in">.</span><span class="keyword">log</span>(c);
+  <span class="keyword">return</span> <span class="string">'over'</span>;
+}
+console<span class="built_in">.</span><span class="keyword">log</span>(start<span class="built_in">.</span>constructor<span class="built_in">.</span>name) <span class="comment">//"GeneratorFunction"</span>
+</pre></td></tr></table></figure>
+
+<p>带有 *的函数声明即代表是一个<code>GeneratorFunction</code>,<code>GeneratorFunction</code>里面可以使用yield关键字，可以理解为在当前位置设置断点。</p>
+<p>下面我们获得一个generator并且使用它</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+</pre></td><td class="code"><pre>var it = start();
+console.log(it.<span class="keyword">next</span>());<span class="regexp">//</span><span class="constant">Object</span> {<span class="symbol">value:</span> <span class="string">"start"</span>, <span class="symbol">done:</span> <span class="keyword">false</span>}
+console.log(it.<span class="keyword">next</span>(<span class="number">22</span>));<span class="regexp">//</span><span class="number">22</span>  object {<span class="symbol">value:</span> <span class="string">'running'</span>, <span class="symbol">done:</span> <span class="keyword">false</span>}
+console.log(it.<span class="keyword">next</span>(<span class="number">333</span>));<span class="regexp">//</span><span class="number">333</span> <span class="constant">Object</span> {<span class="symbol">value:</span> <span class="string">'end'</span>, <span class="symbol">done:</span> <span class="keyword">false</span>}
+console.log(it.<span class="keyword">next</span>(<span class="number">444</span>));<span class="regexp">//</span><span class="number">444</span> <span class="constant">Object</span> {<span class="symbol">value:</span> <span class="string">"over"</span>, <span class="symbol">done:</span> <span class="keyword">true</span>}
+</pre></td></tr></table></figure>
+
+<p>通过执行<code>GeneratorFunction</code>我们可以得到一个<code>generator</code>对象也就是it。it对象有一个next方法。<br>当我们执行<code>start()</code>的时候，start里面的代码并没有执行。当我们第一次调用<code>it.next()</code>的时候代码会执行到第一个yield声明的地方。也就是<code>var a = yield &#39;start&#39;;</code>，注意这边只是执行到了赋值语句的右边yield部分，换句话说<code>var a =</code>这个赋值语句还没有执行。<br>此时<code>it.next()</code>返回的是一个对象，value是yield语句的值，这个值可以是字符串，函数，对象等等等，done代表当前的<code>GeneratorFunction</code>是否执行完毕。</p>
+<p>也许你注意到了我们后来调用了<code>it.next(22)</code>给next传了一个参数。这个时候<code>var a =</code>赋值语句开始执行，实际上此时<code>yield &#39;start&#39;</code>返回的就是22，也就是我们传的参数。一直执行到<code>yield &#39;running&#39;;</code>代码再次断点停住了。next方法的参数会成为上一个yield的返回值。</p>
+<p>最后当执行到<code>return &#39;over&#39;;</code>的时候，next(444)返回的对象的done为true，代表整个代码执行完毕。</p>
+<blockquote>
+<p>es6的generator的规范可以点<a href="http://wiki.ecmascript.org/doku.php?id=harmony:generators#methodnext" target="_blank">这里</a>,可惜由于本身generator还没有正式定稿，所以一直在修改中.前面的wiki也没有更新。目前来说wiki里面提到的send和close方法都已经移除了。变更记录可以在v8的issue里找到。<a href="https://code.google.com/p/v8/issues/detail?id=2715" target="_blank">https://code.google.com/p/v8/issues/detail?id=2715</a></p>
+</blockquote>
+<h2 id="进阶知识：generator的Delegating_yield">进阶知识：generator的Delegating yield</h2>
+<p>Delegating yield是generator的进阶内容。代表一个代理的yield。<br>前面提到yield后面的值可以是函数，对象，等等。其实yield后面还可以这么用。</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+</pre></td><td class="code"><pre><span class="reserved">function</span>* run() {
+<span class="built_in">console</span>.log(<span class="string">"step in child generator"</span>)
+<span class="reserved">var</span> b = yield <span class="string">'running'</span>;
+<span class="built_in">console</span>.log(b);
+<span class="built_in">console</span>.log(<span class="string">"step out child generator"</span>)
+
+}
+<span class="reserved">var</span> runGenerator = run();
+<span class="reserved">function</span>* start() {
+  <span class="reserved">var</span> a = yield <span class="string">'start'</span>;
+  <span class="built_in">console</span>.log(a);
+  yield *runGenerator;
+  <span class="reserved">var</span> c = yield <span class="string">'end'</span>;
+  <span class="built_in">console</span>.log(c);
+  <span class="keyword">return</span> <span class="string">'over'</span>;
+}
+<span class="reserved">var</span> it = start();
+<span class="built_in">console</span>.log(it.next());<span class="regexp">//</span>Object {<span class="attribute">value</span>: <span class="string">"start"</span>, <span class="attribute">done</span>: <span class="literal">false</span>}
+<span class="built_in">console</span>.log(it.next(<span class="number">22</span>));<span class="regexp">//</span><span class="number">22</span> step <span class="keyword">in</span> child generator  object {<span class="attribute">value</span>: <span class="string">'running'</span>, <span class="attribute">done</span>: <span class="literal">false</span>}
+<span class="built_in">console</span>.log(it.next(<span class="number">333</span>));<span class="regexp">//</span><span class="number">333</span> step out child generator  Object {<span class="attribute">value</span>: <span class="string">'end'</span>, <span class="attribute">done</span>: <span class="literal">false</span>}
+<span class="built_in">console</span>.log(it.next(<span class="number">444</span>));<span class="regexp">//</span><span class="number">444</span> Object {<span class="attribute">value</span>: <span class="string">"over"</span>, <span class="attribute">done</span>: <span class="literal">true</span>}
+</pre></td></tr></table></figure>
+
+<p>yield后面可以跟 *anothergenerator，这样当前的断点就会进入到anothergenerator的generatorfunction里面，等子generator全部执行完后再回来继续执行。这个其实有点类似递归的意思。</p>
+<p>其实说白了上面的代码跟之前的是等价的。yield*generator其实相当于把子generator的generatorfunction的代码混入了进来。</p>
+<p>另外子generatorfunction的return值会做为yield*generator的返回值。<br>实例如下：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+</pre></td><td class="code"><pre>function<span class="subst">*</span> run() {
+console<span class="built_in">.</span><span class="keyword">log</span>(<span class="string">"step in child generator"</span>);
+<span class="keyword">return</span> <span class="string">"child over"</span>;
+<span class="built_in">var</span> b <span class="subst">=</span> <span class="keyword">yield</span> <span class="string">'running'</span>;
+console<span class="built_in">.</span><span class="keyword">log</span>(b);
+console<span class="built_in">.</span><span class="keyword">log</span>(<span class="string">"step out child generator"</span>)
+
+}
+<span class="built_in">var</span> runGenerator <span class="subst">=</span> run();
+function<span class="subst">*</span> start() {
+  <span class="built_in">var</span> a <span class="subst">=</span> <span class="keyword">yield</span> <span class="string">'start'</span>;
+  console<span class="built_in">.</span><span class="keyword">log</span>(a);
+  <span class="built_in">var</span> childValue <span class="subst">=</span> <span class="keyword">yield</span> <span class="subst">*</span>runGenerator;
+  console<span class="built_in">.</span><span class="keyword">log</span>(<span class="string">"childValue=="</span><span class="subst">+</span>childValue);
+  <span class="built_in">var</span> c <span class="subst">=</span> <span class="keyword">yield</span> <span class="string">'end'</span>;
+  console<span class="built_in">.</span><span class="keyword">log</span>(c);
+  <span class="keyword">return</span> <span class="string">'over'</span>;
+}
+<span class="built_in">var</span> it <span class="subst">=</span> start();
+console<span class="built_in">.</span><span class="keyword">log</span>(it<span class="built_in">.</span>next());
+<span class="comment">//Object {value: "start", done: false}</span>
+console<span class="built_in">.</span><span class="keyword">log</span>(it<span class="built_in">.</span>next(<span class="number">22</span>));
+<span class="comment">//22</span>
+<span class="comment">//step in child generator</span>
+<span class="comment">//childValue==child over</span>
+<span class="comment">//Object {value: "end", done: false}</span>
+console<span class="built_in">.</span><span class="keyword">log</span>(it<span class="built_in">.</span>next(<span class="number">333</span>));
+<span class="comment">//333 Object {value: "over", done: true}</span>
+</pre></td></tr></table></figure>
+
+<p>简单的测试，子generator的generatorFunction里面如果有return的话，下面的断点就不再起作用，而是提前返回，并且return的值 作为代理调用的返回值。</p>
+<h2 id="结语">结语</h2>
+<p>generator是es6的一个新特性，支持还不是很好，但是这并不影响它的成名，因为通过它可以很好的解决javascript的“恶魔”回调问题。基本generator的功能都介绍了。通过设置断点，我们将可以很好的将回调解放出来，目前比较知名的就是TJ的co库了，下篇，我将按照co的原理实现异步编程的一个简陋库。</p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/generator/">generator</a><a href="/tags/javascript/">javascript</a><a href="/tags/nodejs/">nodejs</a>
+  </div>
+
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/javascript/">javascript</a>►<a class="article-category-link" href="/categories/javascript/源码分析/">源码分析</a>
+</div>
+
+
+
+<div class="article-share" id="share">
+
+  <div data-url="http://purplebamboo.github.com/2014/05/24/koa-source-analytics-1/" data-title="koa源码分析系列（一）generator | blog of purplebamboo" data-tsina="null" class="share clearfix">
+  </div>
+
+</div>
+</footer>   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2014/05/24/koa-source-analytics-2/" title="koa源码分析系列（二）co的实现">
+  <strong>PREVIOUS:</strong><br/>
+  <span>
+  koa源码分析系列（二）co的实现</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2014/05/14/start_with_vagrant/"  title="开始使用vagrant无痛开发">
+ <strong>NEXT:</strong><br/> 
+ <span>开始使用vagrant无痛开发
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section class="comment">
+	<div class="ds-thread"></div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+  <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#generator的es6规范。"><span class="toc-number">1.</span> <span class="toc-text">generator的es6规范。</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#进阶知识：generator的Delegating_yield"><span class="toc-number">2.</span> <span class="toc-text">进阶知识：generator的Delegating yield</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#结语"><span class="toc-number">3.</span> <span class="toc-text">结语</span></a></li></ol>
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+			<li><a href="/categories/angularjs记录/" title="angularjs记录">angularjs记录<sup>9</sup></a></li>
+		
+			<li><a href="/categories/css/" title="css">css<sup>1</sup></a></li>
+		
+			<li><a href="/categories/iconfont技术/" title="iconfont技术">iconfont技术<sup>1</sup></a></li>
+		
+			<li><a href="/categories/javascript/" title="javascript">javascript<sup>15</sup></a></li>
+		
+			<li><a href="/categories/javascript/nodejs/" title="nodejs">nodejs<sup>2</sup></a></li>
+		
+			<li><a href="/categories/从零单排/" title="从零单排">从零单排<sup>1</sup></a></li>
+		
+			<li><a href="/categories/各种知识点记录/" title="各种知识点记录">各种知识点记录<sup>1</sup></a></li>
+		
+			<li><a href="/categories/javascript/源码分析/" title="源码分析">源码分析<sup>5</sup></a></li>
+		
+			<li><a href="/categories/系统环境/" title="系统环境">系统环境<sup>1</sup></a></li>
+		
+			<li><a href="/categories/angularjs记录/翻译/" title="翻译">翻译<sup>1</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			<li><a href="/tags/Filters/" title="Filters">Filters<sup>1</sup></a></li>
+		
+			<li><a href="/tags/analyze/" title="analyze">analyze<sup>1</sup></a></li>
+		
+			<li><a href="/tags/angular/" title="angular">angular<sup>2</sup></a></li>
+		
+			<li><a href="/tags/angularjs/" title="angularjs">angularjs<sup>7</sup></a></li>
+		
+			<li><a href="/tags/ast/" title="ast">ast<sup>1</sup></a></li>
+		
+			<li><a href="/tags/async/" title="async">async<sup>1</sup></a></li>
+		
+			<li><a href="/tags/border-shadow/" title="border-shadow">border-shadow<sup>1</sup></a></li>
+		
+			<li><a href="/tags/chunked/" title="chunked">chunked<sup>1</sup></a></li>
+		
+			<li><a href="/tags/class/" title="class">class<sup>1</sup></a></li>
+		
+			<li><a href="/tags/co/" title="co">co<sup>2</sup></a></li>
+		
+			<li><a href="/tags/comet/" title="comet">comet<sup>1</sup></a></li>
+		
+			<li><a href="/tags/controllers/" title="controllers">controllers<sup>1</sup></a></li>
+		
+			<li><a href="/tags/css3/" title="css3">css3<sup>1</sup></a></li>
+		
+			<li><a href="/tags/generator/" title="generator">generator<sup>1</sup></a></li>
+		
+			<li><a href="/tags/git/" title="git">git<sup>1</sup></a></li>
+		
+			<li><a href="/tags/gulp/" title="gulp">gulp<sup>1</sup></a></li>
+		
+			<li><a href="/tags/html/" title="html">html<sup>1</sup></a></li>
+		
+			<li><a href="/tags/iconfont/" title="iconfont">iconfont<sup>1</sup></a></li>
+		
+			<li><a href="/tags/javascript/" title="javascript">javascript<sup>15</sup></a></li>
+		
+			<li><a href="/tags/koa/" title="koa">koa<sup>2</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+      <li><a href="http://ued.taobao.com/" target="_blank">淘宝UED</a> </li>            <li><a href="http://www.aliued.com/" target="_blank">Alibaba国际站UED</a> </li>            <li><a href="http://china.aliued.com/" target="_blank">Alibaba中文站UED</a> </li>            <li><a href="http://ued.alipay.com/" target="_blank"> 支付宝UED</a> </li>            <li><a href="http://ued.tmall.com/" target="_blank">天猫UED</a> </li><li><a href="http://ur.alibaba-inc.com">阿里用户体验中心</a> </li>	 <li><a href="http://www.uisdc.com" target="_blank">优秀网页设计</a> </li>
+      
+    </ul>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+		<p class="copyright">Powered by <a href="http://zespia.tw/hexo/" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/A-limon/pacman" target="_blank" title="Pacman">Pacman</a> © 2015 
+		
+		<a href="http://purplebamboo.github.com" target="_blank" title="purplebamboo">purplebamboo</a>
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.1.0.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else
+    {
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      h  = $('article h2')
+      ah = $('article h2'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  if(ah.length==0){
+    t.css('display','none');
+  }else{
+    c.click(function(){
+      ta.css('display', 'block').addClass('fadeIn');
+    });
+    o.click(function(){
+      ta.css('display', 'none');
+    });
+    $(window).scroll(function(){
+      ta.css("top",Math.max(140,320-$(this).scrollTop()));
+    });
+  };
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#share"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="#textlogo" class="article-back-to-top" title="Top"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="QRcode"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="Weibo"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"cherishpeace"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+
+
+
+
+<script type="text/javascript">
+  $(function(){
+    window.onscroll = function(){
+      //console.log($(document).scrollTop()+"px")
+      $('.background-container .bg-dy2').css('backgroundPosition','0 '+$(document).scrollTop()+"px");
+    }
+
+  })
+</script>
+<div class="background-container">
+  <div class="bg-dy1">
+
+  </div>
+  <div class="bg-dy2">
+
+  </div>
+
+</div
+
+  </body>
+</html>

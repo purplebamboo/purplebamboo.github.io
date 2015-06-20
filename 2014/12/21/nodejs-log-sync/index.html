@@ -1,0 +1,516 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>说说nodejs的日志问题 | blog of purplebamboo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
+    
+    <meta name="author" content="purplebamboo">
+    
+    <meta name="description" content="作为一个曾经辗转使用过java，php，ruby（ror）的小白，一见到nodejs就疯狂的迷恋上了。终于可以在服务端写js了。不过nodejs毕竟发展的时间太短，所以呢很多东西还不完善。比如我最近就遇到了比较麻烦的日志处理的问题。
+曾几何时，我在使用php或者ruby的时候，日志啦，数据库orm啦">
+    
+    
+    
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/pacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/pacman.jpg">
+    
+    <link rel="stylesheet" href="/css/style.css" type="text/css">
+</head>
+
+  <body>
+    <header>
+      <div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.svg" alt="blog of purplebamboo" title="blog of purplebamboo"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="blog of purplebamboo">blog of purplebamboo</a></h1>
+				<h2 class="blog-motto">dota诚可贵，coding价更高，若为女朋友，二者皆可抛。</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">首页</a></li>
+					
+						<li><a href="/archives">归档</a></li>
+					
+						<li><a href="/categories">分类</a></li>
+					
+						<li><a href="/about">关于</a></li>
+					
+					<li>
+					
+					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="text" id="search" name="q" autocomplete="off" maxlength="20" placeholder="搜索" />
+						<input type="hidden" name="q" value="site:purplebamboo.github.com">
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2014/12/21/nodejs-log-sync/" title="说说nodejs的日志问题" itemprop="url">说说nodejs的日志问题</a>
+  </h1>
+  <p class="article-author">By
+    
+      <a href="http://purplebamboo.github.com" title="purplebamboo">purplebamboo</a>
+    </p>
+  <p class="article-time">
+    <time datetime="2014-12-21T10:34:14.000Z" itemprop="datePublished">12月 21 2014</time>
+    更新日期:<time datetime="2015-01-17T14:24:09.000Z" itemprop="dateModified">1月 17 2015</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#遇到的问题"><span class="toc-number">1.</span> <span class="toc-text">遇到的问题</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#缘起"><span class="toc-number">2.</span> <span class="toc-text">缘起</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#针对koa的解决方案"><span class="toc-number">3.</span> <span class="toc-text">针对koa的解决方案</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#结语"><span class="toc-number">4.</span> <span class="toc-text">结语</span></a></li></ol>
+		</div>
+		
+		<p>作为一个曾经辗转使用过java，php，ruby（ror）的小白，一见到nodejs就疯狂的迷恋上了。终于可以在服务端写js了。不过nodejs毕竟发展的时间太短，所以呢很多东西还不完善。比如我最近就遇到了比较麻烦的日志处理的问题。</p>
+<p>曾几何时，我在使用php或者ruby的时候，日志啦，数据库orm啦这些东西都有很成熟的框架去自动帮你弄好。而nodejs现在最出名的koa实在是太简单纯粹了，只是帮你完成了中间件的结构，其他全部都撒手不管了。所以呢日志模块需要自己去找的。</p>
+<h2 id="遇到的问题">遇到的问题</h2>
+<p>首先我们看个例子：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+</pre></td><td class="code"><pre><span class="keyword">var</span> http = <span class="built_in">require</span>(<span class="string">'http'</span>);
+
+<span class="keyword">var</span> server = http.createServer(<span class="function"><span class="keyword">function</span> <span class="params">(req, res)</span> {</span>
+
+  setTimeout(<span class="function"><span class="keyword">function</span><span class="params">()</span>{</span>
+    console.log(<span class="string">"我开始打第一段日志了。。。"</span>);
+    res.write(<span class="string">"处理中。。。"</span>);
+  },<span class="number">1000</span>)
+
+  setTimeout(<span class="function"><span class="keyword">function</span><span class="params">()</span>{</span>
+    console.log(<span class="string">"我要打第二段日志了。。。"</span>);
+    res.write(<span class="string">"处理中。。。"</span>);
+  },<span class="number">5000</span>)
+
+  setTimeout(<span class="function"><span class="keyword">function</span><span class="params">()</span>{</span>
+    console.log(<span class="string">"日志打完了。。。"</span>);
+    res.end(<span class="string">"请求结束。。。"</span>);
+  },<span class="number">10000</span>)
+
+
+}).listen(<span class="number">3000</span>);
+console.log(<span class="string">'listening on port '</span> + <span class="number">3000</span>);
+</pre></td></tr></table></figure>
+
+<p>程序会针对每个请求打出一些日志，需要注意的是这些日志都是异步的。每个请求都要10秒才能结束。</p>
+<p>运行程序后，我们再开两个终端前后运行：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+</pre></td><td class="code"><pre>curl http:<span class="comment">//localhost:3000</span>
+<span class="comment">//你也可以用浏览器，开两个窗口访问</span>
+</pre></td></tr></table></figure>
+
+<p>我们期待的效果应该是：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+</pre></td><td class="code"><pre><span class="comment">//第一个请求进来：</span>
+开始打第一段日志了。。。
+我要打第二段日志了。。
+。日志打完了。。。
+
+<span class="comment">//第二个请求进来：</span>
+开始打第一段日志了。。。
+我要打第二段日志了。。。
+日志打完了。。。
+</pre></td></tr></table></figure>
+
+<p>但是你会发现结果是：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+</pre></td><td class="code"><pre>我开始打第一段日志了。。。
+我开始打第一段日志了。。。
+我要打第二段日志了。。。
+我要打第二段日志了。。。
+日志打完了。。。
+日志打完了。。。
+</pre></td></tr></table></figure>
+
+<p>你会发现发生了串行的现象，也就是第一个请求日志打了一半，第二个请求也开始打日志了。</p>
+<p>试想一下，当我们的应用很大时，我们肯定是希望针对当前的一个请求的日志记录在一起的。这样才好方便排查某个请求的问题。如果不加处理的话，全是串行在一起。那完全就不知道错误属于哪个请求的。</p>
+<h2 id="缘起">缘起</h2>
+<p>为什么会发生这种问题呢，这要从nodejs的请求模型开始聊起了。</p>
+<p>首先单进程的ruby，php这类的服务是不会有这个问题的，因为他们都是同步机制，一个进程处理一个请求。注意这边强调的是单进程。比如我们在服务端开一个进程。当来了一个请求时，一个请求就使用其中的一个进程。再来一个请求怎么办呢？没办法，只能等着。等前面的请求结束了。你才可以进来。所以对于一个请求来说他是独享各种环境的，是不怕被其它请求打扰的。</p>
+<p>而nodejs是单进程单线程异步处理所有的请求：</p>
+<p><img src="https://camo.githubusercontent.com/46bdc60fb3eca8e1771714bc5d62be70016b5c90/687474703a2f2f6661726d332e737461746963666c69636b722e636f6d2f323833312f31303937333137353037355f643565396534366261355f6f2e706e67" alt="nodejs请求模型"></p>
+<p>这边盗个图，出处<a href="https://github.com/DoubleSpout/threadAndPackage/blob/master/thread_and_process.md" target="_blank">这里</a>。这篇文章很好的讲解了一些请求模型。</p>
+<p>来了一个请求，nodejs就开始处理了，再来一个请求也可以使用这个进程。他们可以同时调用，这得益于nodejs本身的基于事件的异步编程模型。第一个请求过来了可能处理了一半下个请求就过来了。所以就会出现了我们上面的串行的问题。</p>
+<p>我们上面说单进程的ruby，php是不会有这种问题的，因为一个进程一次只能处理一个请求。但是很不幸，一般使用ruby或者php的时候都是开启多个进程的，这样一个请求来了就去看有没有空闲的进程，有就使用，满了就等待。所以虽然 单个进程的模型不会有问题，但是多进程下的php，ruby模型如果一起写日志文件，还是会有这种请求之间竞争资源的问题。解决方案或是文件锁，或是使用内存记录最后一次性输出等等，这边就先不讨论。</p>
+<p>另外，nodejs目前也具有了多进程的结构，就是使用cluster。比如四核的处理器我们就可以开四个进程来做负载均衡。当然这又跟ruby，php的进程模型是两码事了。</p>
+<p>那么对于nodejs我们怎么处理呢？</p>
+<p>很简单，我们只需要针对每个请求维护一个局部变量。等到当前请求结束的时候一次性的输出。</p>
+<h2 id="针对koa的解决方案">针对koa的解决方案</h2>
+<p>由于项目使用koa架构，所以基于此我开发了个包来处理这样的日志的问题。koa很贴心的维护了一个针对每个请求的context对象。所以我们可以在这个对象上维护一个局部日志缓存，所有地方的输出日志都是先记录在这个缓存里等请求结束后再一次性输出到日志文件。</p>
+<p>地址：<a href="https://github.com/purplebamboo/koa-logs-full" target="_blank">https://github.com/purplebamboo/koa-logs-full</a></p>
+<p>用来记录类似rails风格的日志。</p>
+<h2 id="结语">结语</h2>
+<p>结语还是要滴，nodejs还很不完善，但是正是因为不完善，作为开发人员才有很多东西可以去做去挑战。每踩到一个坑，去了解相应的实现就可以学到很多知识，对于前端来说是个很好的机遇。</p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/nodejs/">nodejs</a><a href="/tags/log/">log</a><a href="/tags/sync/">sync</a>
+  </div>
+
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/javascript/">javascript</a>►<a class="article-category-link" href="/categories/javascript/nodejs/">nodejs</a>
+</div>
+
+
+
+<div class="article-share" id="share">
+
+  <div data-url="http://purplebamboo.github.com/2014/12/21/nodejs-log-sync/" data-title="说说nodejs的日志问题 | blog of purplebamboo" data-tsina="null" class="share clearfix">
+  </div>
+
+</div>
+</footer>   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2015/01/16/promise/" title="promise规范">
+  <strong>PREVIOUS:</strong><br/>
+  <span>
+  promise规范</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2014/12/17/javascript-unicode-doublebyte-handle/"  title="javascript处理汉字到unicode的转换">
+ <strong>NEXT:</strong><br/> 
+ <span>javascript处理汉字到unicode的转换
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section class="comment">
+	<div class="ds-thread"></div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+  <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#遇到的问题"><span class="toc-number">1.</span> <span class="toc-text">遇到的问题</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#缘起"><span class="toc-number">2.</span> <span class="toc-text">缘起</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#针对koa的解决方案"><span class="toc-number">3.</span> <span class="toc-text">针对koa的解决方案</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#结语"><span class="toc-number">4.</span> <span class="toc-text">结语</span></a></li></ol>
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+			<li><a href="/categories/angularjs记录/" title="angularjs记录">angularjs记录<sup>9</sup></a></li>
+		
+			<li><a href="/categories/css/" title="css">css<sup>1</sup></a></li>
+		
+			<li><a href="/categories/iconfont技术/" title="iconfont技术">iconfont技术<sup>1</sup></a></li>
+		
+			<li><a href="/categories/javascript/" title="javascript">javascript<sup>15</sup></a></li>
+		
+			<li><a href="/categories/javascript/nodejs/" title="nodejs">nodejs<sup>2</sup></a></li>
+		
+			<li><a href="/categories/从零单排/" title="从零单排">从零单排<sup>1</sup></a></li>
+		
+			<li><a href="/categories/各种知识点记录/" title="各种知识点记录">各种知识点记录<sup>1</sup></a></li>
+		
+			<li><a href="/categories/javascript/源码分析/" title="源码分析">源码分析<sup>5</sup></a></li>
+		
+			<li><a href="/categories/系统环境/" title="系统环境">系统环境<sup>1</sup></a></li>
+		
+			<li><a href="/categories/angularjs记录/翻译/" title="翻译">翻译<sup>1</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			<li><a href="/tags/Filters/" title="Filters">Filters<sup>1</sup></a></li>
+		
+			<li><a href="/tags/analyze/" title="analyze">analyze<sup>1</sup></a></li>
+		
+			<li><a href="/tags/angular/" title="angular">angular<sup>2</sup></a></li>
+		
+			<li><a href="/tags/angularjs/" title="angularjs">angularjs<sup>7</sup></a></li>
+		
+			<li><a href="/tags/ast/" title="ast">ast<sup>1</sup></a></li>
+		
+			<li><a href="/tags/async/" title="async">async<sup>1</sup></a></li>
+		
+			<li><a href="/tags/border-shadow/" title="border-shadow">border-shadow<sup>1</sup></a></li>
+		
+			<li><a href="/tags/chunked/" title="chunked">chunked<sup>1</sup></a></li>
+		
+			<li><a href="/tags/class/" title="class">class<sup>1</sup></a></li>
+		
+			<li><a href="/tags/co/" title="co">co<sup>2</sup></a></li>
+		
+			<li><a href="/tags/comet/" title="comet">comet<sup>1</sup></a></li>
+		
+			<li><a href="/tags/controllers/" title="controllers">controllers<sup>1</sup></a></li>
+		
+			<li><a href="/tags/css3/" title="css3">css3<sup>1</sup></a></li>
+		
+			<li><a href="/tags/generator/" title="generator">generator<sup>1</sup></a></li>
+		
+			<li><a href="/tags/git/" title="git">git<sup>1</sup></a></li>
+		
+			<li><a href="/tags/gulp/" title="gulp">gulp<sup>1</sup></a></li>
+		
+			<li><a href="/tags/html/" title="html">html<sup>1</sup></a></li>
+		
+			<li><a href="/tags/iconfont/" title="iconfont">iconfont<sup>1</sup></a></li>
+		
+			<li><a href="/tags/javascript/" title="javascript">javascript<sup>15</sup></a></li>
+		
+			<li><a href="/tags/koa/" title="koa">koa<sup>2</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+      <li><a href="http://ued.taobao.com/" target="_blank">淘宝UED</a> </li>            <li><a href="http://www.aliued.com/" target="_blank">Alibaba国际站UED</a> </li>            <li><a href="http://china.aliued.com/" target="_blank">Alibaba中文站UED</a> </li>            <li><a href="http://ued.alipay.com/" target="_blank"> 支付宝UED</a> </li>            <li><a href="http://ued.tmall.com/" target="_blank">天猫UED</a> </li><li><a href="http://ur.alibaba-inc.com">阿里用户体验中心</a> </li>	 <li><a href="http://www.uisdc.com" target="_blank">优秀网页设计</a> </li>
+      
+    </ul>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+		<p class="copyright">Powered by <a href="http://zespia.tw/hexo/" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/A-limon/pacman" target="_blank" title="Pacman">Pacman</a> © 2015 
+		
+		<a href="http://purplebamboo.github.com" target="_blank" title="purplebamboo">purplebamboo</a>
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.1.0.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else
+    {
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      h  = $('article h2')
+      ah = $('article h2'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  if(ah.length==0){
+    t.css('display','none');
+  }else{
+    c.click(function(){
+      ta.css('display', 'block').addClass('fadeIn');
+    });
+    o.click(function(){
+      ta.css('display', 'none');
+    });
+    $(window).scroll(function(){
+      ta.css("top",Math.max(140,320-$(this).scrollTop()));
+    });
+  };
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#share"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="#textlogo" class="article-back-to-top" title="Top"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="QRcode"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="Weibo"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"cherishpeace"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+
+
+
+
+<script type="text/javascript">
+  $(function(){
+    window.onscroll = function(){
+      //console.log($(document).scrollTop()+"px")
+      $('.background-container .bg-dy2').css('backgroundPosition','0 '+$(document).scrollTop()+"px");
+    }
+
+  })
+</script>
+<div class="background-container">
+  <div class="bg-dy1">
+
+  </div>
+  <div class="bg-dy2">
+
+  </div>
+
+</div
+
+  </body>
+</html>

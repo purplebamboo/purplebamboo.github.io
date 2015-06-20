@@ -1,0 +1,874 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>angularjs Directives的使用 | blog of purplebamboo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
+    
+    <meta name="author" content="purplebamboo">
+    
+    <meta name="description" content="这篇文章用来介绍angular里面directives的使用，大部分是参考的官方的教程。由于本人也是学习之中，难免有错误的地方。欢迎指正。
+什么是directive？
+官方是这么说的：directive是dom节点上的一种标签。angular的解析引擎匹配到这个标签后，会给当前的dom节点增加行为，">
+    
+    
+    
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/pacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/pacman.jpg">
+    
+    <link rel="stylesheet" href="/css/style.css" type="text/css">
+</head>
+
+  <body>
+    <header>
+      <div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.svg" alt="blog of purplebamboo" title="blog of purplebamboo"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="blog of purplebamboo">blog of purplebamboo</a></h1>
+				<h2 class="blog-motto">dota诚可贵，coding价更高，若为女朋友，二者皆可抛。</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">首页</a></li>
+					
+						<li><a href="/archives">归档</a></li>
+					
+						<li><a href="/categories">分类</a></li>
+					
+						<li><a href="/about">关于</a></li>
+					
+					<li>
+					
+					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="text" id="search" name="q" autocomplete="off" maxlength="20" placeholder="搜索" />
+						<input type="hidden" name="q" value="site:purplebamboo.github.com">
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2013/10/28/angularjs-directive/" title="angularjs Directives的使用" itemprop="url">angularjs Directives的使用</a>
+  </h1>
+  <p class="article-author">By
+    
+      <a href="http://purplebamboo.github.com" title="purplebamboo">purplebamboo</a>
+    </p>
+  <p class="article-time">
+    <time datetime="2013-10-28T07:18:57.000Z" itemprop="datePublished">10月 28 2013</time>
+    更新日期:<time datetime="2014-08-20T23:19:04.000Z" itemprop="dateModified">8月 21 2014</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#什么是directive？"><span class="toc-number">1.</span> <span class="toc-text">什么是directive？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#系统自带的一些directive的介绍"><span class="toc-number">2.</span> <span class="toc-text">系统自带的一些directive的介绍</span></a></li><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#ng-app"><span class="toc-number">2.0.1.</span> <span class="toc-text">ng-app</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#ng-model"><span class="toc-number">2.0.2.</span> <span class="toc-text">ng-model</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#ng-controller"><span class="toc-number">2.0.3.</span> <span class="toc-text">ng-controller</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#ng-click，ng-blur，ng-mousedown等"><span class="toc-number">2.0.4.</span> <span class="toc-text">ng-click，ng-blur，ng-mousedown等</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#ng-show"><span class="toc-number">2.0.5.</span> <span class="toc-text">ng-show</span></a></li></ol></ol><li class="toc-item toc-level-2"><a class="toc-link" href="#自己编写directive"><span class="toc-number">3.</span> <span class="toc-text">自己编写directive</span></a></li><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#修改当前的dom节点"><span class="toc-number">3.1.</span> <span class="toc-text">修改当前的dom节点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#模板类的directive"><span class="toc-number">3.2.</span> <span class="toc-text">模板类的directive</span></a></li><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-_restrict"><span class="toc-number">3.2.1.</span> <span class="toc-text">1. restrict</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-scope"><span class="toc-number">3.2.2.</span> <span class="toc-text">2.scope</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-transclude"><span class="toc-number">3.2.3.</span> <span class="toc-text">3.transclude</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-require与controller"><span class="toc-number">3.2.4.</span> <span class="toc-text">4.require与controller</span></a></li></ol><li class="toc-item toc-level-3"><a class="toc-link" href="#总结"><span class="toc-number">3.3.</span> <span class="toc-text">总结</span></a></li></ol>
+		</div>
+		
+		<p>这篇文章用来介绍angular里面directives的使用，大部分是参考的官方的教程。由于本人也是学习之中，难免有错误的地方。欢迎指正。</p>
+<h2 id="什么是directive？">什么是directive？</h2>
+<p>官方是这么说的：directive是dom节点上的一种标签。angular的解析引擎匹配到这个标签后，会给当前的dom节点增加行为，或者改变dom节点和子节点。<br>说白了就是用来在当前节点上干点特别的事的。</p>
+<h2 id="系统自带的一些directive的介绍">系统自带的一些directive的介绍</h2>
+<p>其实之前我们已经用过很多directive了。下面对一些主要的做一些介绍。</p>
+<h4 id="ng-app">ng-app</h4>
+<p>这个算是最常用的directive了，这个directive的作用就是启动当前应用，让angular从它指向的节点开始一层层的遍历。然后做一系列的编译操作。后面可以跟上模块名。</p>
+<h4 id="ng-model">ng-model</h4>
+<p>这个标签的作用是，修改当前control上的$scope对象的属性值。这个标签经常使用在input,select, textarea 这些dom节点上。比如 <code>ngmodel=&quot;v&quot;</code> 就会将当前的dom节点（input,select, textarea）的值跟$scope的v属性值绑定，这样你重新输入一个值后，$scope的v属性也会自动变化。</p>
+<h4 id="ng-controller">ng-controller</h4>
+<p>这个标签很简单，就是用来指定当前dom使用哪个control函数的。这样当前dom下可以直接访问到control函数的$scope所有属性还有方法。</p>
+<h4 id="ng-click，ng-blur，ng-mousedown等">ng-click，ng-blur，ng-mousedown等</h4>
+<p>这些标签都是用来监听事件的。后面可以跟相应的事件处理函数。</p>
+<h4 id="ng-show">ng-show</h4>
+<p>这类标签其实之前有介绍过，主要用来处理dom的显示和隐藏的。ng-show=”v”的机制是这样的。当$scope.v的值为非true的值时就会给当前的dom节点增加一个class =&gt; ng-hide 并且这个class被angular设成了。<code>.ng-hide {display: none !important;}</code>,也就是说只有$scope.v为true类型的值时，这个dom才会显示出来。</p>
+<h2 id="自己编写directive">自己编写directive</h2>
+<p>自己编写directive可以实现很多功能，主要通过当前模块的directive方法实现。大概有如下这些类型：</p>
+<p>下面一一介绍。</p>
+<h3 id="修改当前的dom节点">修改当前的dom节点</h3>
+<p>这类directive主要用来修改当前的dom的一些属性，或者显示隐藏这类的。</p>
+<p>下面看个例子：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+</pre></td><td class="code"><pre><span class="doctype">&lt;!doctype html&gt;</span>
+<span class="tag">&lt;<span class="title">html</span> &gt;</span>
+  <span class="tag">&lt;<span class="title">head</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">meta</span> <span class="attribute">charset</span>=<span class="value">"utf-8"</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">script</span> <span class="attribute">src</span>=<span class="value">"angular.js"</span>&gt;</span><span class="javascript"></span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"text/javascript"</span>&gt;</span><span class="javascript">
+    <span class="keyword">var</span> Dm = angular.module(<span class="string">'testDirective'</span>,[]);
+ 
+    Dm.controller(<span class="string">'DmCtrl'</span>, <span class="function"><span class="keyword">function</span><span class="params">($scope)</span> {</span>
+        
+        $scope.money=<span class="string">"123"</span>
+
+    });
+
+    Dm.directive(<span class="string">'moneyWrap'</span>, <span class="function"><span class="keyword">function</span><span class="params">()</span> {</span>
+ 
+      <span class="function"><span class="keyword">function</span> <span class="title">link</span><span class="params">(scope, element, attrs)</span> {</span>
+        element.text(scope[attrs.cuName]+<span class="string">"￥"</span>)
+      }
+   
+      <span class="keyword">return</span> {
+        link: link
+      };
+    });
+    </span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
+  <span class="tag">&lt;/<span class="title">head</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">body</span> <span class="attribute">ng-app</span>=<span class="value">"testDirective"</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">div</span> <span class="attribute">class</span>=<span class="value">"wrap"</span> <span class="attribute">ng-controller</span>=<span class="value">"DmCtrl"</span>&gt;</span>
+      <span class="tag">&lt;<span class="title">h2</span>&gt;</span>用来测试directive的例子<span class="tag">&lt;/<span class="title">h2</span>&gt;</span>
+      <span class="tag">&lt;<span class="title">span</span> <span class="attribute">money-wrap</span> <span class="attribute">cu-name</span>=<span class="value">"money"</span>&gt;</span><span class="tag">&lt;/<span class="title">span</span>&gt;</span>
+    <span class="tag">&lt;/<span class="title">div</span>&gt;</span>
+  <span class="tag">&lt;/<span class="title">body</span>&gt;</span>
+<span class="tag">&lt;/<span class="title">html</span>&gt;</span>
+</pre></td></tr></table></figure>
+
+<p>非常简单的例子，用于打印当前的金钱，末尾加个￥。</p>
+<p>首先directive方法用来在当前模块里生成一个标签。返回一个对象：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+</pre></td><td class="code"><pre><span class="tag">return</span> <span class="rules">{
+        <span class="rule"><span class="attribute">link</span>:<span class="value"> link
+</span></span></span>};
+</pre></td></tr></table></figure>
+
+<p>对象里面指定了link函数。这个link函数就是用来操作dom的主。</p>
+<p>我们看下link函数的参数：</p>
+<ol>
+<li>scope<br>这个就是当前control的$scope对象，没啥好说的。</li>
+<li>element<br>这个是当前dom节点经过“jquery”处理过后的对象。用过jquery的都知道这个概念。当然这边的jquery是angular自己实现的阉割版的jquery。方法少了许多，不过按angular的话说，够用了。</li>
+<li>attrs<br>这个对象包含，当前的dom节点上的各种属性标签的值。不过要注意的是这边会将xxx-bbb这种形式的改写成xxxBbb的这种驼峰形式。</li>
+</ol>
+<p>看看我们的link函数吧：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+</pre></td><td class="code"><pre><span class="function"><span class="keyword">function</span> <span class="title">link</span>(<span class="title">scope</span>, <span class="title">element</span>, <span class="title">attrs</span>) {</span>
+    <span class="keyword">element</span>.<span class="keyword">text</span>(scope[attrs.cuName]+<span class="string">"￥"</span>)
+}
+</pre></td></tr></table></figure>
+
+<p>简简单单的一句话就涵盖了三个参数哈。<br>意思很简单，就是先通过attrs.cuName获取到属性名称money，之后拿到model的值，再通过text（jquery的方法）操作dom的值。<br>这样一个简单的directive就实现了。</p>
+<p>directive也可以简写，直接返回一个link函数。<br>这样上面的就可以简写为：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+</pre></td><td class="code"><pre>Dm.directive(<span class="string">'moneyWrap'</span>, <span class="function"><span class="keyword">function</span><span class="params">()</span> {</span>
+      <span class="keyword">return</span> <span class="function"><span class="keyword">function</span> <span class="params">(scope, element, attrs)</span> {</span>
+        element.text(scope[attrs.cuName]+<span class="string">"￥"</span>)
+      }
+ });
+</pre></td></tr></table></figure>
+
+<h3 id="模板类的directive">模板类的directive</h3>
+<p>前面提到的都是通过link函数来操作当前dom本身的。directive还支持一种模板类的扩展形式。</p>
+<p>下面先看个例子：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+</pre></td><td class="code"><pre><span class="xml"><span class="doctype">&lt;!doctype html&gt;</span>
+<span class="tag">&lt;<span class="title">html</span> &gt;</span>
+  <span class="tag">&lt;<span class="title">head</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">meta</span> <span class="attribute">charset</span>=<span class="value">"utf-8"</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">script</span> <span class="attribute">src</span>=<span class="value">"angular.js"</span>&gt;</span><span class="javascript"></span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"text/javascript"</span>&gt;</span><span class="javascript">
+    <span class="keyword">var</span> Dm = angular.module(<span class="string">'testDirective'</span>,[]);
+ 
+    Dm.controller(<span class="string">'DmCtrl'</span>, <span class="function"><span class="keyword">function</span><span class="params">($scope)</span> {</span>      
+        $scope.me = {
+          money:<span class="string">"123"</span>
+        }
+    });
+
+    Dm.directive(<span class="string">'moneyWrap'</span>, <span class="function"><span class="keyword">function</span><span class="params">()</span> {</span>
+      <span class="keyword">return</span> {
+        template: <span class="string">'你值: </span></span></span><span class="expression">{{<span class="variable">me.money</span>}}</span><span class="xml"><span class="javascript">￥<span class="string">'
+      };
+    });
+    </span></span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
+  <span class="tag">&lt;/<span class="title">head</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">body</span> <span class="attribute">ng-app</span>=<span class="value">"testDirective"</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">div</span> <span class="attribute">class</span>=<span class="value">"wrap"</span> <span class="attribute">ng-controller</span>=<span class="value">"DmCtrl"</span>&gt;</span>
+      <span class="tag">&lt;<span class="title">h2</span>&gt;</span>用来测试directive的例子<span class="tag">&lt;/<span class="title">h2</span>&gt;</span>
+      <span class="tag">&lt;<span class="title">span</span> <span class="attribute">money-wrap</span>&gt;</span><span class="tag">&lt;/<span class="title">span</span>&gt;</span>
+      
+    <span class="tag">&lt;/<span class="title">div</span>&gt;</span>
+  <span class="tag">&lt;/<span class="title">body</span>&gt;</span>
+<span class="tag">&lt;/<span class="title">html</span>&gt;</span></span>
+</pre></td></tr></table></figure>
+
+<p>通过template属性。可以设置模板。</p>
+<p>不过这样只能设置字符串，显然不是最好的方式。我们可以用<br><code>templateUrl: &#39;my.html&#39;</code>来加载script模板，或者其他文件。</p>
+<p>所以我们可以这么变：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+</pre></td><td class="code"><pre><span class="xml"><span class="doctype">&lt;!doctype html&gt;</span>
+<span class="tag">&lt;<span class="title">html</span> &gt;</span>
+  <span class="tag">&lt;<span class="title">head</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">meta</span> <span class="attribute">charset</span>=<span class="value">"utf-8"</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">script</span> <span class="attribute">src</span>=<span class="value">"angular.js"</span>&gt;</span><span class="javascript"></span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"text/javascript"</span>&gt;</span><span class="javascript">
+    <span class="keyword">var</span> Dm = angular.module(<span class="string">'testDirective'</span>,[]);
+ 
+    Dm.controller(<span class="string">'DmCtrl'</span>, <span class="function"><span class="keyword">function</span><span class="params">($scope)</span> {</span>      
+        $scope.me = {
+          money:<span class="string">"123"</span>
+        }
+    });
+
+    Dm.directive(<span class="string">'moneyWrap'</span>, <span class="function"><span class="keyword">function</span><span class="params">()</span> {</span>
+      <span class="keyword">return</span> {
+        templateUrl: <span class="string">'my.html'</span>
+      };
+    });
+    </span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
+     <span class="comment">&lt;!-- my.html --&gt;</span>
+  <span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"text/ng-template"</span> <span class="attribute">id</span>=<span class="value">"my.html"</span>&gt;</span><span class="javascript">
+    你值: </span></span><span class="expression">{{<span class="variable">me.money</span>}}</span><span class="xml"><span class="javascript">￥
+  </span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
+  <span class="tag">&lt;/<span class="title">head</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">body</span> <span class="attribute">ng-app</span>=<span class="value">"testDirective"</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">div</span> <span class="attribute">class</span>=<span class="value">"wrap"</span> <span class="attribute">ng-controller</span>=<span class="value">"DmCtrl"</span>&gt;</span>
+      <span class="tag">&lt;<span class="title">h2</span>&gt;</span>用来测试directive的例子<span class="tag">&lt;/<span class="title">h2</span>&gt;</span>
+      <span class="tag">&lt;<span class="title">span</span> <span class="attribute">money-wrap</span>&gt;</span><span class="tag">&lt;/<span class="title">span</span>&gt;</span>
+      
+    <span class="tag">&lt;/<span class="title">div</span>&gt;</span>
+  <span class="tag">&lt;/<span class="title">body</span>&gt;</span>
+<span class="tag">&lt;/<span class="title">html</span>&gt;</span></span>
+</pre></td></tr></table></figure>
+
+<p>不过记得angular做了限制，这个必须在服务器里才能跑。不然angular会报跨域的错误。你可以用个nodejs，或者php开个服务测试。</p>
+<p>我们能做的其实有很多。下面介绍些高级的用法。</p>
+<p>我们知道directive会返回一个对象，这个对象其实支持很多配置值。下面介绍这些比较高端的类容：</p>
+<h4 id="1-_restrict">1. restrict</h4>
+<p>restrict用来指定directive的形式，支持“A”,”E”,”AE”三种。A就是attribute，E是element。默认是A也就是我们的用法;<br><code>&lt;span money-wrap&gt;&lt;/span&gt;</code>。如果我们改成“E”就要这么用：<code>&lt;money-wrap&gt;&lt;/money-wrap&gt;</code>。“EA”就是两种都可以用，很简单吧。</p>
+<h4 id="2-scope">2.scope</h4>
+<p>这个属性，有人一看直接就是一个子标签的scope对象吧。用来定义自己的scope属性。这话是不对的，这边的scope有个专门的名字，叫<code>isolate scope</code>。如果你没有定义这个scope的话，那么你的子模板，也就是使用templateUrl引用的html里面使用的scope会是外面的control的。但是你一旦定义了scope，那么对不起，外面的那个scope就不能用了，那种原型链式的属性访问也不存在了。<br>下面看个官方的例子学习下：</p>
+<p>html如下：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+</pre></td><td class="code"><pre><span class="xml"><span class="tag">&lt;<span class="title">div</span> <span class="attribute">ng-app</span>=<span class="value">"docsIsolationExample"</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">div</span> <span class="attribute">ng-controller</span>=<span class="value">"Ctrl"</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">my-customer</span> <span class="attribute">info</span>=<span class="value">"naomi"</span>&gt;</span><span class="tag">&lt;/<span class="title">my-customer</span>&gt;</span>
+  <span class="tag">&lt;/<span class="title">div</span>&gt;</span>
+  <span class="comment">&lt;!-- my-customer-plus-vojta.html --&gt;</span>
+  <span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"text/ng-template"</span> <span class="attribute">id</span>=<span class="value">"my-customer-plus-vojta.html"</span>&gt;</span><span class="javascript">
+    Name: </span></span><span class="expression">{{<span class="variable">customerInfo.name</span>}}</span><span class="xml"><span class="javascript"> Address: </span></span><span class="expression">{{<span class="variable">customerInfo.address</span>}}</span><span class="xml"><span class="javascript">
+    &lt;hr&gt;
+    Name: </span></span><span class="expression">{{<span class="variable">vojta.name</span>}}</span><span class="xml"><span class="javascript"> Address: </span></span><span class="expression">{{<span class="variable">vojta.address</span>}}</span><span class="xml"><span class="javascript">
+  </span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
+<span class="tag">&lt;/<span class="title">div</span>&gt;</span></span>
+</pre></td></tr></table></figure>
+
+<p>js如下：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+</pre></td><td class="code"><pre>angular.module(<span class="string">'docsIsolationExample'</span>, [])
+  .controller(<span class="string">'Ctrl'</span>, <span class="function"><span class="keyword">function</span><span class="params">(<span class="variable">$scope</span>)</span> {</span>
+    <span class="variable">$scope</span>.naomi = { name: <span class="string">'Naomi'</span>, address: <span class="string">'1600 Amphitheatre'</span> };
+
+    <span class="variable">$scope</span>.vojta = { name: <span class="string">'Vojta'</span>, address: <span class="string">'3456 Somewhere Else'</span> };
+  })
+  .directive(<span class="string">'myCustomer'</span>, <span class="function"><span class="keyword">function</span><span class="params">()</span> {</span>
+    <span class="keyword">return</span> {
+      restrict: <span class="string">'E'</span>,
+      scope: {
+        customerInfo: <span class="string">'=info'</span>
+      },
+      templateUrl: <span class="string">'my-customer-plus-vojta.html'</span>
+    };
+  });
+</pre></td></tr></table></figure>
+
+<p>还是很好理解的吧，只要注意这边这个 </p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+</pre></td><td class="code"><pre><span class="tag">scope</span>: <span class="rules">{
+        <span class="rule"><span class="attribute">customerInfo</span>:<span class="value"> <span class="string">'=info'</span>
+</span></span></span>},
+</pre></td></tr></table></figure>
+
+<p>这个意思是设置一个<code>isolate scope</code>这个<code>isolate scope</code>里面有个customerInfo属性，而这个属性的值等于info。info是哪里来的呢？你看下html里面的第三行;</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+</pre></td><td class="code"><pre><span class="tag">&lt;<span class="title">my-customer</span> <span class="attribute">info</span>=<span class="value">"naomi"</span>&gt;</span><span class="tag">&lt;/<span class="title">my-customer</span>&gt;</span>
+</pre></td></tr></table></figure>
+
+<p>看见没有，引用directive的时候，有个属性info设置为了外面control的scope里面的naomi。这样angular就会把外面的Ctrl的$scope.naomi对象赋值到<code>isolate scope</code>的customerInfo属性上。注意这边是克隆了一份，所以你修改<code>isolate scope</code>里面的值是不会影响到外面的。</p>
+<blockquote>
+<p><code>isolate scope</code>里面的属性名如果与directive上面的属性一样，可以只简写为=。也就是说可以这么写scope：<code>scope: {info: &#39;=&#39;}</code></p>
+</blockquote>
+<p>这边不止支持=，还支持@,&amp;符号。@符号是用来赋值string类型的值的。而&amp;符号可以用来执行表达式和方法。比如你定义</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+</pre></td><td class="code"><pre><span class="xml"><span class="tag">&lt;<span class="title">my-customer</span> <span class="attribute">info</span>=<span class="value">"naomi"</span>  <span class="attribute">t</span>=<span class="value">"1111</span></span></span><span class="expression">{{<span class="variable">naomi.name</span>}}</span><span class="xml"><span class="tag"><span class="value">"</span> <span class="attribute">x</span>=<span class="value">"1+1"</span>&gt;</span><span class="tag">&lt;/<span class="title">my-customer</span>&gt;</span></span>
+</pre></td></tr></table></figure>
+
+<p>那你就得这么调用：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+</pre></td><td class="code"><pre><span class="tag">scope</span>: <span class="rules">{
+        <span class="rule"><span class="attribute">customerInfo</span>:<span class="value"> <span class="string">'=info'</span>,
+        t: <span class="string">'@'</span>,
+        x:<span class="string">'&'</span>
+ </span></span></span>},
+</pre></td></tr></table></figure>
+
+<p>这样t的值为‘1111Naomi’。x为‘2’。</p>
+<h4 id="3-transclude">3.transclude</h4>
+<p>transclude属性用来实现这样的事情，就是directive包含的类容会使用外面的scope对象，而不使用内部的。看下面这个例子：<br>html：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+</pre></td><td class="code"><pre><span class="xml"><span class="tag">&lt;<span class="title">div</span> <span class="attribute">ng-app</span>=<span class="value">"docsTransclusionDirective"</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">div</span> <span class="attribute">ng-controller</span>=<span class="value">"Ctrl"</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">my-dialog</span>&gt;</span>Check out the contents, </span><span class="expression">{{<span class="variable">name</span>}}</span><span class="xml">!<span class="tag">&lt;/<span class="title">my-dialog</span>&gt;</span>
+  <span class="tag">&lt;/<span class="title">div</span>&gt;</span>
+  <span class="comment">&lt;!-- my-dialog.html --&gt;</span>
+  <span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"text/ng-template"</span> <span class="attribute">id</span>=<span class="value">"my-dialog.html"</span>&gt;</span><span class="javascript">
+    &lt;div <span class="keyword">class</span>=<span class="string">"alert"</span> ng-transclude&gt;
+    <span class="xml"><span class="tag">&lt;/<span class="title">div</span>&gt;</span>
+  </span></span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
+<span class="tag">&lt;/<span class="title">div</span>&gt;</span></span>
+</pre></td></tr></table></figure>
+
+<p>js:</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+</pre></td><td class="code"><pre>angular.module(<span class="string">'docsTransclusionDirective'</span>, [])
+  .controller(<span class="string">'Ctrl'</span>, <span class="function"><span class="keyword">function</span><span class="params">(<span class="variable">$scope</span>)</span> {</span>
+    <span class="variable">$scope</span>.name = <span class="string">'Tobias'</span>;
+  })
+  .directive(<span class="string">'myDialog'</span>, <span class="function"><span class="keyword">function</span><span class="params">()</span> {</span>
+    <span class="keyword">return</span> {
+      restrict: <span class="string">'E'</span>,
+      scope:{}，
+      transclude: <span class="keyword">true</span>,
+      templateUrl: <span class="string">'my-dialog.html'</span>
+    };
+  });
+</pre></td></tr></table></figure>
+
+<p>这边结果为<code>Check out the contents, Tobias!</code></p>
+<p>由于定义了<code>isolate scope</code>，所以不能访问外面的control的scope，很麻烦。<br>但是这边 使用了transclude: true。<my-dialog>里面的类容<code>&lt;my-dialog&gt;Check out the contents, {{name}}!&lt;/my-dialog&gt;</code>是可以使用外面的scope对象的。解析完成后。在my-dialog.html里面我们通过系统自带的ng-transclude标签将那边的内容直接全部引入过来。这个主要使用在dialog这样的场景里。</p>
+<h4 id="4-require与controller">4.require与controller</h4>
+<p>这两个属性用于两个directive的之间的相互作用。</p>
+<p>直接看下面的例子吧：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+</pre></td><td class="code"><pre>angular.module(<span class="string">'docsTabsExample'</span>, [])
+  .directive(<span class="string">'myTabs'</span>, <span class="function"><span class="keyword">function</span><span class="params">()</span> {</span>
+    <span class="keyword">return</span> {
+      restrict: <span class="string">'E'</span>,
+      scope: {},
+      controller: <span class="function"><span class="keyword">function</span><span class="params">($scope)</span> {</span>
+        <span class="keyword">this</span>.addPane = <span class="function"><span class="keyword">function</span><span class="params">(pane)</span> {</span>
+         
+        };
+      }
+    };
+  })
+  .directive(<span class="string">'myPane'</span>, <span class="function"><span class="keyword">function</span><span class="params">()</span> {</span>
+    <span class="keyword">return</span> {
+      <span class="built_in">require</span>: <span class="string">'^myTabs'</span>,
+      restrict: <span class="string">'E'</span>,
+      scope: {},
+      link: <span class="function"><span class="keyword">function</span><span class="params">(scope, element, attrs, tabsCtrl)</span> {</span>
+        tabsCtrl.addPane(scope);
+      }
+    };
+  });
+</pre></td></tr></table></figure>
+
+<p>使用并不复杂。<br>上面的myTabs定义了controller，这个其实就相当于在当前的directive节点上增加了 ng-controller标签一样。就是定义了一个control处理函数。<br>下面的myPane通过require: ‘^myTabs’可以向上查找。^的意思是向父标签寻找。这边是找寻myTabs。找到myTabs后，当前directive的link函数就可以拿到require进来的directive里面定义的controller。这边就是tabsCtrl。通过它就可以调用myTabs里面的一系列方法。</p>
+<h3 id="总结">总结</h3>
+<p>可以看到directives非常灵活，可以处理很多事情，但是不能烂用。实际上这边的模板各种引用，后面会介绍使用路由来实现这种模板的各种相互关系。这是后面的内容了。</p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/angularjs/">angularjs</a>
+  </div>
+
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/angularjs记录/">angularjs记录</a>
+</div>
+
+
+
+<div class="article-share" id="share">
+
+  <div data-url="http://purplebamboo.github.com/2013/10/28/angularjs-directive/" data-title="angularjs Directives的使用 | blog of purplebamboo" data-tsina="null" class="share clearfix">
+  </div>
+
+</div>
+</footer>   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2013/11/03/angularjs-filter/" title="angularjs-filter">
+  <strong>PREVIOUS:</strong><br/>
+  <span>
+  angularjs-filter</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2013/10/03/angularjs-controller/"  title="angularjs controllers的使用">
+ <strong>NEXT:</strong><br/> 
+ <span>angularjs controllers的使用
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section class="comment">
+	<div class="ds-thread"></div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+  <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#什么是directive？"><span class="toc-number">1.</span> <span class="toc-text">什么是directive？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#系统自带的一些directive的介绍"><span class="toc-number">2.</span> <span class="toc-text">系统自带的一些directive的介绍</span></a></li><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#ng-app"><span class="toc-number">2.0.1.</span> <span class="toc-text">ng-app</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#ng-model"><span class="toc-number">2.0.2.</span> <span class="toc-text">ng-model</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#ng-controller"><span class="toc-number">2.0.3.</span> <span class="toc-text">ng-controller</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#ng-click，ng-blur，ng-mousedown等"><span class="toc-number">2.0.4.</span> <span class="toc-text">ng-click，ng-blur，ng-mousedown等</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#ng-show"><span class="toc-number">2.0.5.</span> <span class="toc-text">ng-show</span></a></li></ol></ol><li class="toc-item toc-level-2"><a class="toc-link" href="#自己编写directive"><span class="toc-number">3.</span> <span class="toc-text">自己编写directive</span></a></li><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#修改当前的dom节点"><span class="toc-number">3.1.</span> <span class="toc-text">修改当前的dom节点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#模板类的directive"><span class="toc-number">3.2.</span> <span class="toc-text">模板类的directive</span></a></li><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-_restrict"><span class="toc-number">3.2.1.</span> <span class="toc-text">1. restrict</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-scope"><span class="toc-number">3.2.2.</span> <span class="toc-text">2.scope</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-transclude"><span class="toc-number">3.2.3.</span> <span class="toc-text">3.transclude</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-require与controller"><span class="toc-number">3.2.4.</span> <span class="toc-text">4.require与controller</span></a></li></ol><li class="toc-item toc-level-3"><a class="toc-link" href="#总结"><span class="toc-number">3.3.</span> <span class="toc-text">总结</span></a></li></ol>
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+			<li><a href="/categories/angularjs记录/" title="angularjs记录">angularjs记录<sup>9</sup></a></li>
+		
+			<li><a href="/categories/css/" title="css">css<sup>1</sup></a></li>
+		
+			<li><a href="/categories/iconfont技术/" title="iconfont技术">iconfont技术<sup>1</sup></a></li>
+		
+			<li><a href="/categories/javascript/" title="javascript">javascript<sup>15</sup></a></li>
+		
+			<li><a href="/categories/javascript/nodejs/" title="nodejs">nodejs<sup>2</sup></a></li>
+		
+			<li><a href="/categories/从零单排/" title="从零单排">从零单排<sup>1</sup></a></li>
+		
+			<li><a href="/categories/各种知识点记录/" title="各种知识点记录">各种知识点记录<sup>1</sup></a></li>
+		
+			<li><a href="/categories/javascript/源码分析/" title="源码分析">源码分析<sup>5</sup></a></li>
+		
+			<li><a href="/categories/系统环境/" title="系统环境">系统环境<sup>1</sup></a></li>
+		
+			<li><a href="/categories/angularjs记录/翻译/" title="翻译">翻译<sup>1</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			<li><a href="/tags/Filters/" title="Filters">Filters<sup>1</sup></a></li>
+		
+			<li><a href="/tags/analyze/" title="analyze">analyze<sup>1</sup></a></li>
+		
+			<li><a href="/tags/angular/" title="angular">angular<sup>2</sup></a></li>
+		
+			<li><a href="/tags/angularjs/" title="angularjs">angularjs<sup>7</sup></a></li>
+		
+			<li><a href="/tags/ast/" title="ast">ast<sup>1</sup></a></li>
+		
+			<li><a href="/tags/async/" title="async">async<sup>1</sup></a></li>
+		
+			<li><a href="/tags/border-shadow/" title="border-shadow">border-shadow<sup>1</sup></a></li>
+		
+			<li><a href="/tags/chunked/" title="chunked">chunked<sup>1</sup></a></li>
+		
+			<li><a href="/tags/class/" title="class">class<sup>1</sup></a></li>
+		
+			<li><a href="/tags/co/" title="co">co<sup>2</sup></a></li>
+		
+			<li><a href="/tags/comet/" title="comet">comet<sup>1</sup></a></li>
+		
+			<li><a href="/tags/controllers/" title="controllers">controllers<sup>1</sup></a></li>
+		
+			<li><a href="/tags/css3/" title="css3">css3<sup>1</sup></a></li>
+		
+			<li><a href="/tags/generator/" title="generator">generator<sup>1</sup></a></li>
+		
+			<li><a href="/tags/git/" title="git">git<sup>1</sup></a></li>
+		
+			<li><a href="/tags/gulp/" title="gulp">gulp<sup>1</sup></a></li>
+		
+			<li><a href="/tags/html/" title="html">html<sup>1</sup></a></li>
+		
+			<li><a href="/tags/iconfont/" title="iconfont">iconfont<sup>1</sup></a></li>
+		
+			<li><a href="/tags/javascript/" title="javascript">javascript<sup>15</sup></a></li>
+		
+			<li><a href="/tags/koa/" title="koa">koa<sup>2</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+      <li><a href="http://ued.taobao.com/" target="_blank">淘宝UED</a> </li>            <li><a href="http://www.aliued.com/" target="_blank">Alibaba国际站UED</a> </li>            <li><a href="http://china.aliued.com/" target="_blank">Alibaba中文站UED</a> </li>            <li><a href="http://ued.alipay.com/" target="_blank"> 支付宝UED</a> </li>            <li><a href="http://ued.tmall.com/" target="_blank">天猫UED</a> </li><li><a href="http://ur.alibaba-inc.com">阿里用户体验中心</a> </li>	 <li><a href="http://www.uisdc.com" target="_blank">优秀网页设计</a> </li>
+      
+    </ul>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+		<p class="copyright">Powered by <a href="http://zespia.tw/hexo/" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/A-limon/pacman" target="_blank" title="Pacman">Pacman</a> © 2015 
+		
+		<a href="http://purplebamboo.github.com" target="_blank" title="purplebamboo">purplebamboo</a>
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.1.0.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else
+    {
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      h  = $('article h2')
+      ah = $('article h2'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  if(ah.length==0){
+    t.css('display','none');
+  }else{
+    c.click(function(){
+      ta.css('display', 'block').addClass('fadeIn');
+    });
+    o.click(function(){
+      ta.css('display', 'none');
+    });
+    $(window).scroll(function(){
+      ta.css("top",Math.max(140,320-$(this).scrollTop()));
+    });
+  };
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#share"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="#textlogo" class="article-back-to-top" title="Top"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="QRcode"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="Weibo"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"cherishpeace"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+
+
+
+
+<script type="text/javascript">
+  $(function(){
+    window.onscroll = function(){
+      //console.log($(document).scrollTop()+"px")
+      $('.background-container .bg-dy2').css('backgroundPosition','0 '+$(document).scrollTop()+"px");
+    }
+
+  })
+</script>
+<div class="background-container">
+  <div class="bg-dy1">
+
+  </div>
+  <div class="bg-dy2">
+
+  </div>
+
+</div
+
+  </body>
+</html>

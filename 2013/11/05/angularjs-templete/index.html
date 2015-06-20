@@ -1,0 +1,643 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>angular模板简介 | blog of purplebamboo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
+    
+    <meta name="author" content="purplebamboo">
+    
+    <meta name="description" content="模板是老生常谈的话题了，在anjular里面，模板被赋予了更多的东西。angular的templete支持这些东西：
+
+Directive：这个前面已经提到了，就是ng-click这些angular独有的标记。
+markup：这个就跟传统的模板差不多，使用{{}}来渲染数据，或者执行些简单的expr">
+    
+    
+    
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/pacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/pacman.jpg">
+    
+    <link rel="stylesheet" href="/css/style.css" type="text/css">
+</head>
+
+  <body>
+    <header>
+      <div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.svg" alt="blog of purplebamboo" title="blog of purplebamboo"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="blog of purplebamboo">blog of purplebamboo</a></h1>
+				<h2 class="blog-motto">dota诚可贵，coding价更高，若为女朋友，二者皆可抛。</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">首页</a></li>
+					
+						<li><a href="/archives">归档</a></li>
+					
+						<li><a href="/categories">分类</a></li>
+					
+						<li><a href="/about">关于</a></li>
+					
+					<li>
+					
+					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="text" id="search" name="q" autocomplete="off" maxlength="20" placeholder="搜索" />
+						<input type="hidden" name="q" value="site:purplebamboo.github.com">
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2013/11/05/angularjs-templete/" title="angular模板简介" itemprop="url">angular模板简介</a>
+  </h1>
+  <p class="article-author">By
+    
+      <a href="http://purplebamboo.github.com" title="purplebamboo">purplebamboo</a>
+    </p>
+  <p class="article-time">
+    <time datetime="2013-11-05T07:19:16.000Z" itemprop="datePublished">11月 5 2013</time>
+    更新日期:<time datetime="2014-08-20T23:19:05.000Z" itemprop="dateModified">8月 21 2014</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#markup"><span class="toc-number">1.</span> <span class="toc-text">markup</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#form_controls"><span class="toc-number">2.</span> <span class="toc-text">form controls</span></a></li><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#我们如何控制样式呢？"><span class="toc-number">2.1.</span> <span class="toc-text">我们如何控制样式呢？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#有哪些标记可以用呢？"><span class="toc-number">2.2.</span> <span class="toc-text">有哪些标记可以用呢？</span></a></li></ol></ol><li class="toc-item toc-level-1"><a class="toc-link" href="#结语"><span class="toc-number"></span> <span class="toc-text">结语</span></a></li></ol>
+		</div>
+		
+		<p>模板是老生常谈的话题了，在anjular里面，模板被赋予了更多的东西。<br>angular的templete支持这些东西：</p>
+<ul>
+<li>Directive：这个前面已经提到了，就是ng-click这些angular独有的标记。</li>
+<li>markup：这个就跟传统的模板差不多，使用{{}}来渲染数据，或者执行些简单的expressions（表达式）。</li>
+<li>filter：这个前面也已经讲过了，过滤器，实现数据的过滤定制功能呢。</li>
+<li>form controls：这个是angular用来验证表单的扩展。</li>
+</ul>
+<p>filter，directive在另外博文里已经讲过了，这边就不再重复了。</p>
+<h2 id="markup">markup</h2>
+<p>这货大家肯定很熟悉，不然肯定要面壁去。传统型的模板标记一般支持</p>
+<ul>
+<li>简单变量输出，表达式解析</li>
+<li>循环</li>
+<li>if 判断等等</li>
+</ul>
+<p>不过刚开始接触angular的人会很迷惑，因为什么 循环，if判断，angular的markup一概不支持。angular里面的{{}}只提供表达式解析的功能。而一些逻辑性的东西都推荐使用Directive来实现。</p>
+<p>下面我们就看看 这些基本的东西，在angular下怎么实现。</p>
+<p><strong>1.循环输出</strong></p>
+<p>使用ng-repeat实现，ng-repeat可以将当前的dom节点进行循环输出，eg:</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+</pre></td><td class="code"><pre><span class="doctype">&lt;!doctype html&gt;</span>
+<span class="tag">&lt;<span class="title">html</span> &gt;</span>
+  <span class="tag">&lt;<span class="title">head</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">meta</span> <span class="attribute">charset</span>=<span class="value">"utf-8"</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">script</span> <span class="attribute">src</span>=<span class="value">"angular.js"</span>&gt;</span><span class="javascript"></span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"text/javascript"</span>&gt;</span><span class="javascript">
+      <span class="function"><span class="keyword">function</span> <span class="title">TodoCtrl</span><span class="params">($scope)</span> {</span>
+        $scope.items = [<span class="string">'hello'</span>, <span class="string">'world'</span>];
+      }
+    </span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
+  <span class="tag">&lt;/<span class="title">head</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">body</span> &gt;</span>
+    <span class="tag">&lt;<span class="title">div</span> <span class="attribute">ng-app</span>&gt;</span>
+      <span class="tag">&lt;<span class="title">ul</span> <span class="attribute">ng-controller</span>=<span class="value">"TodoCtrl"</span>&gt;</span>
+          <span class="tag">&lt;<span class="title">li</span> <span class="attribute">ng-repeat</span>=<span class="value">"item in items"</span>&gt;</span>
+             
+          <span class="tag">&lt;/<span class="title">li</span>&gt;</span>
+      <span class="tag">&lt;/<span class="title">ul</span>&gt;</span>
+    <span class="tag">&lt;/<span class="title">div</span>&gt;</span>
+  <span class="tag">&lt;/<span class="title">body</span>&gt;</span>
+<span class="tag">&lt;/<span class="title">html</span>&gt;</span>
+</pre></td></tr></table></figure>
+
+<p>结果为（去除了很多无关的angular自动生成的东西后）：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+</pre></td><td class="code"><pre><span class="tag">&lt;<span class="title">ul</span> <span class="attribute">ng-controller</span>=<span class="value">"TodoCtrl"</span> <span class="attribute">class</span>=<span class="value">"ng-scope"</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">li</span> <span class="attribute">ng-repeat</span>=<span class="value">"item in items"</span> &gt;</span>
+      hello
+    <span class="tag">&lt;/<span class="title">li</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">li</span> <span class="attribute">ng-repeat</span>=<span class="value">"item in items"</span>&gt;</span>
+      world
+    <span class="tag">&lt;/<span class="title">li</span>&gt;</span>
+<span class="tag">&lt;/<span class="title">ul</span>&gt;</span>
+</pre></td></tr></table></figure>
+
+<p>这样 就可以循环输出了，这样看起来会比较清爽一些，少了很多烦人的{{}}，让{{}}只处理变量的输出解析。</p>
+<p>当然啦，一些必须的扩展是必不可少的，ng-repeat支持下面的这些内部标记：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">值</th>
+<th style="text-align:left">类型</th>
+<th style="text-align:left">描述 </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">$index</td>
+<td style="text-align:left">number</td>
+<td style="text-align:left">当前的集合下标index(0..length-1)</td>
+</tr>
+<tr>
+<td style="text-align:left">$first</td>
+<td style="text-align:left">boolean</td>
+<td style="text-align:left">如果是第一个元素的话，这个变量会为true</td>
+</tr>
+<tr>
+<td style="text-align:left">$middle</td>
+<td style="text-align:left">boolean</td>
+<td style="text-align:left">如果是中间的元素，这个变量会为true</td>
+</tr>
+<tr>
+<td style="text-align:left">$last</td>
+<td style="text-align:left">boolean</td>
+<td style="text-align:left">如果是最后的元素，这个变量会为true</td>
+</tr>
+<tr>
+<td style="text-align:left">$even</td>
+<td style="text-align:left">boolean</td>
+<td style="text-align:left">如果元素$index是偶数，这个变量会为true</td>
+</tr>
+<tr>
+<td style="text-align:left">$odd</td>
+<td style="text-align:left">boolean</td>
+<td style="text-align:left">如果元素$index是奇数，这个变量会为true</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>需要注意的是，ng-repeat只支持将所在的dom节点进行循环输出。如果希望，改变这个范围，可以使用ng-repeat-start和ng-repeat-end。</p>
+</blockquote>
+<p><strong>2.条件判断</strong></p>
+<p>条件判断，在angular里面使用ng-show来实现。</p>
+<p>我们修改下上面的例子</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+</pre></td><td class="code"><pre><span class="tag">&lt;<span class="title">li</span> <span class="attribute">ng-repeat</span>=<span class="value">"item in items"</span> <span class="attribute">ng-show</span>=<span class="value">"$first"</span>&gt;</span>
+ 
+<span class="tag">&lt;/<span class="title">li</span>&gt;</span>
+</pre></td></tr></table></figure>
+
+<p>注意到 后面的<code>ng-show=&quot;$first&quot;</code>,ng-show=”$first”的机制是这样的。当$first的值为非true的值时就会给当前的dom节点增加一个class =&gt; ng-hide 并且这个class被angular设成了<code>.ng-hide {display: none !important;}</code>,也就是说只有$first为true类型的值时，这个dom才会显示出来。</p>
+<p>这边由于在ng-repeat的环境范围(scope)下，所以可以读到$first的值。这样就只会显示第一个元素。简单易懂吧</p>
+<h2 id="form_controls">form controls</h2>
+<p>form controls算是angular给表单专门做的扩展。毕竟大部分的应用都是涉及到表单操作的。有这样的扩展后，可以方便很多。</p>
+<p>使用起来并不复杂，可以看这个例子，<a href="http://jsfiddle.net/cherishpeace/6hxV5/" target="_blank">猛戳这里</a></p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+</pre></td><td class="code"><pre><span class="tag">&lt;<span class="title">div</span> <span class="attribute">ng-app</span>=<span class="value">"App"</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">form</span> <span class="attribute">name</span>=<span class="value">"myForm"</span> <span class="attribute">ng-controller</span>=<span class="value">"Ctrl"</span>&gt;</span>
+    userType: <span class="tag">&lt;<span class="title">input</span> <span class="attribute">name</span>=<span class="value">"input"</span> <span class="attribute">ng-model</span>=<span class="value">"userType"</span> <span class="attribute">required</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">span</span> <span class="attribute">class</span>=<span class="value">"error"</span> <span class="attribute">ng-show</span>=<span class="value">"myForm.input.$error.required"</span>&gt;</span>Required!<span class="tag">&lt;/<span class="title">span</span>&gt;</span><span class="tag">&lt;<span class="title">br</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">tt</span>&gt;</span>userType = {{userType}}<span class="tag">&lt;/<span class="title">tt</span>&gt;</span><span class="tag">&lt;<span class="title">br</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">tt</span>&gt;</span>myForm.input.$valid = {{myForm.input.$valid}}<span class="tag">&lt;/<span class="title">tt</span>&gt;</span><span class="tag">&lt;<span class="title">br</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">tt</span>&gt;</span>myForm.input.$error = {{myForm.input.$error}}<span class="tag">&lt;/<span class="title">tt</span>&gt;</span><span class="tag">&lt;<span class="title">br</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">tt</span>&gt;</span>myForm.$valid = {{myForm.$valid}}<span class="tag">&lt;/<span class="title">tt</span>&gt;</span><span class="tag">&lt;<span class="title">br</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">tt</span>&gt;</span>myForm.$error.required = {{!!myForm.$error.required}}<span class="tag">&lt;/<span class="title">tt</span>&gt;</span><span class="tag">&lt;<span class="title">br</span>&gt;</span>
+   <span class="tag">&lt;/<span class="title">form</span>&gt;</span>
+<span class="tag">&lt;/<span class="title">div</span>&gt;</span>
+</pre></td></tr></table></figure>
+
+<p>这是官方的例子，看起来一目了然。</p>
+<p>我们来分析下</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+</pre></td><td class="code"><pre> <span class="tag">&lt;<span class="title">form</span> <span class="attribute">name</span>=<span class="value">"myForm"</span> <span class="attribute">ng-controller</span>=<span class="value">"Ctrl"</span>&gt;</span>
+</pre></td></tr></table></figure>
+
+<p>注意这边的<code>name=&quot;myForm&quot;</code>,通过定义这个后，angular就自动生成了form的实例，这样，在这个form的范围内你可以访问很多变量。angular尽量使用原生的东西。不仅是form标签，input标签你只要设置了name属性，就可以实例化对象。</p>
+<p>所以这边才可以通过myForm.input来拿到文本输入框的实例。</p>
+<p>这段代码是这么运行的，我们在input里面设置了required，所以当当前的input为空时，angular会自动设置一些值。<br>myForm.input.$valid会设为false，表明当前的输入不合法<br>myForm.input.$error会记录当前的错误，这边因为为空。所以myForm.input.$error.required就会为true</p>
+<blockquote>
+<p>我们这边只定义了required，所以它的值为<code>{&quot;required&quot;:false}</code>,如果我们多加一些验证规则如<code>maxlength</code>等等，就会有其他的值。</p>
+</blockquote>
+<p>另外只要form下面有一个标签的值不合法，那么myForm.$valid。form的$valid值就会为false。</p>
+<h3 id="我们如何控制样式呢？">我们如何控制样式呢？</h3>
+<p>angular，会自动根据当前验证的结果给你的dom注入class。</p>
+<p>具体会有这些：</p>
+<ul>
+<li>ng-valid 当前节点合法时为true</li>
+<li>ng-invalid 当前节点不合法时为true</li>
+<li>ng-pristine 当前节点还没有被操作，一个input，你没输入过，就会加上这个class</li>
+<li>ng-dirty  与上面的相反，代表当前的input已经被操作过了，有过交互了被污染了</li>
+</ul>
+<blockquote>
+<p>注意当你输入了东西，就会代表污染了，就会有ng-dirty的class了，而你再去掉输入的东西ng-dirty还是会在的。它是第一次的时候，才会判断。</p>
+</blockquote>
+<p>通过这些class，我们就可以操作form的样式了。</p>
+<h3 id="有哪些标记可以用呢？">有哪些标记可以用呢？</h3>
+<p>这边主要用input举例，介绍最通用的。具体的应该去官网看api文档。</p>
+<p>在input上面我们可以使用很多标记，表明验证规则，主要有下面这些：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">标记</th>
+<th style="text-align:left">类别</th>
+<th style="text-align:left">描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">required</td>
+<td style="text-align:left">(optional)string</td>
+<td style="text-align:left">如果没有输入值的话，就会报错</td>
+</tr>
+<tr>
+<td style="text-align:left">ngMinlength</td>
+<td style="text-align:left">(optional)number</td>
+<td style="text-align:left">设置最小的宽度值，超过就报错</td>
+</tr>
+<tr>
+<td style="text-align:left">ngMaxlength</td>
+<td style="text-align:left">(optional)number</td>
+<td style="text-align:left">设置最大的宽度值，超过就报错</td>
+</tr>
+<tr>
+<td style="text-align:left">ngPattern</td>
+<td style="text-align:left">(optional)string</td>
+<td style="text-align:left">设置正则验证，如果正则匹配不到就会判断为错</td>
+</tr>
+<tr>
+<td style="text-align:left">ngChange</td>
+<td style="text-align:left">(optional)string</td>
+<td style="text-align:left">angular的表达式，当输入的值变化的时候会执行</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>需要注意的是这只是通用的一些，对于一些如 type=’email’这样的angular会自动加上email的合法性判断。</p>
+</blockquote>
+<h1 id="结语">结语</h1>
+<p>至此，angular的模板就介绍的差不多了。下次开始介绍service的操作，里面的路由service与这边的模板是息息相关的。</p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/angular/">angular</a><a href="/tags/templete/">templete</a>
+  </div>
+
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/angularjs记录/">angularjs记录</a>
+</div>
+
+
+
+<div class="article-share" id="share">
+
+  <div data-url="http://purplebamboo.github.com/2013/11/05/angularjs-templete/" data-title="angular模板简介 | blog of purplebamboo" data-tsina="null" class="share clearfix">
+  </div>
+
+</div>
+</footer>   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2013/12/03/anjular-service/" title="anjular-service">
+  <strong>PREVIOUS:</strong><br/>
+  <span>
+  anjular-service</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2013/11/03/angularjs-filter/"  title="angularjs-filter">
+ <strong>NEXT:</strong><br/> 
+ <span>angularjs-filter
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section class="comment">
+	<div class="ds-thread"></div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+  <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#markup"><span class="toc-number">1.</span> <span class="toc-text">markup</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#form_controls"><span class="toc-number">2.</span> <span class="toc-text">form controls</span></a></li><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#我们如何控制样式呢？"><span class="toc-number">2.1.</span> <span class="toc-text">我们如何控制样式呢？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#有哪些标记可以用呢？"><span class="toc-number">2.2.</span> <span class="toc-text">有哪些标记可以用呢？</span></a></li></ol></ol><li class="toc-item toc-level-1"><a class="toc-link" href="#结语"><span class="toc-number"></span> <span class="toc-text">结语</span></a></li></ol>
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+			<li><a href="/categories/angularjs记录/" title="angularjs记录">angularjs记录<sup>9</sup></a></li>
+		
+			<li><a href="/categories/css/" title="css">css<sup>1</sup></a></li>
+		
+			<li><a href="/categories/iconfont技术/" title="iconfont技术">iconfont技术<sup>1</sup></a></li>
+		
+			<li><a href="/categories/javascript/" title="javascript">javascript<sup>15</sup></a></li>
+		
+			<li><a href="/categories/javascript/nodejs/" title="nodejs">nodejs<sup>2</sup></a></li>
+		
+			<li><a href="/categories/从零单排/" title="从零单排">从零单排<sup>1</sup></a></li>
+		
+			<li><a href="/categories/各种知识点记录/" title="各种知识点记录">各种知识点记录<sup>1</sup></a></li>
+		
+			<li><a href="/categories/javascript/源码分析/" title="源码分析">源码分析<sup>5</sup></a></li>
+		
+			<li><a href="/categories/系统环境/" title="系统环境">系统环境<sup>1</sup></a></li>
+		
+			<li><a href="/categories/angularjs记录/翻译/" title="翻译">翻译<sup>1</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			<li><a href="/tags/Filters/" title="Filters">Filters<sup>1</sup></a></li>
+		
+			<li><a href="/tags/analyze/" title="analyze">analyze<sup>1</sup></a></li>
+		
+			<li><a href="/tags/angular/" title="angular">angular<sup>2</sup></a></li>
+		
+			<li><a href="/tags/angularjs/" title="angularjs">angularjs<sup>7</sup></a></li>
+		
+			<li><a href="/tags/ast/" title="ast">ast<sup>1</sup></a></li>
+		
+			<li><a href="/tags/async/" title="async">async<sup>1</sup></a></li>
+		
+			<li><a href="/tags/border-shadow/" title="border-shadow">border-shadow<sup>1</sup></a></li>
+		
+			<li><a href="/tags/chunked/" title="chunked">chunked<sup>1</sup></a></li>
+		
+			<li><a href="/tags/class/" title="class">class<sup>1</sup></a></li>
+		
+			<li><a href="/tags/co/" title="co">co<sup>2</sup></a></li>
+		
+			<li><a href="/tags/comet/" title="comet">comet<sup>1</sup></a></li>
+		
+			<li><a href="/tags/controllers/" title="controllers">controllers<sup>1</sup></a></li>
+		
+			<li><a href="/tags/css3/" title="css3">css3<sup>1</sup></a></li>
+		
+			<li><a href="/tags/generator/" title="generator">generator<sup>1</sup></a></li>
+		
+			<li><a href="/tags/git/" title="git">git<sup>1</sup></a></li>
+		
+			<li><a href="/tags/gulp/" title="gulp">gulp<sup>1</sup></a></li>
+		
+			<li><a href="/tags/html/" title="html">html<sup>1</sup></a></li>
+		
+			<li><a href="/tags/iconfont/" title="iconfont">iconfont<sup>1</sup></a></li>
+		
+			<li><a href="/tags/javascript/" title="javascript">javascript<sup>15</sup></a></li>
+		
+			<li><a href="/tags/koa/" title="koa">koa<sup>2</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+      <li><a href="http://ued.taobao.com/" target="_blank">淘宝UED</a> </li>            <li><a href="http://www.aliued.com/" target="_blank">Alibaba国际站UED</a> </li>            <li><a href="http://china.aliued.com/" target="_blank">Alibaba中文站UED</a> </li>            <li><a href="http://ued.alipay.com/" target="_blank"> 支付宝UED</a> </li>            <li><a href="http://ued.tmall.com/" target="_blank">天猫UED</a> </li><li><a href="http://ur.alibaba-inc.com">阿里用户体验中心</a> </li>	 <li><a href="http://www.uisdc.com" target="_blank">优秀网页设计</a> </li>
+      
+    </ul>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+		<p class="copyright">Powered by <a href="http://zespia.tw/hexo/" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/A-limon/pacman" target="_blank" title="Pacman">Pacman</a> © 2015 
+		
+		<a href="http://purplebamboo.github.com" target="_blank" title="purplebamboo">purplebamboo</a>
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.1.0.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else
+    {
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      h  = $('article h2')
+      ah = $('article h2'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  if(ah.length==0){
+    t.css('display','none');
+  }else{
+    c.click(function(){
+      ta.css('display', 'block').addClass('fadeIn');
+    });
+    o.click(function(){
+      ta.css('display', 'none');
+    });
+    $(window).scroll(function(){
+      ta.css("top",Math.max(140,320-$(this).scrollTop()));
+    });
+  };
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#share"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="#textlogo" class="article-back-to-top" title="Top"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="QRcode"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="Weibo"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"cherishpeace"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+
+
+
+
+<script type="text/javascript">
+  $(function(){
+    window.onscroll = function(){
+      //console.log($(document).scrollTop()+"px")
+      $('.background-container .bg-dy2').css('backgroundPosition','0 '+$(document).scrollTop()+"px");
+    }
+
+  })
+</script>
+<div class="background-container">
+  <div class="bg-dy1">
+
+  </div>
+  <div class="bg-dy2">
+
+  </div>
+
+</div
+
+  </body>
+</html>

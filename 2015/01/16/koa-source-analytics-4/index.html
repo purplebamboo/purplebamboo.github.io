@@ -1,0 +1,822 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>koa源码分析系列（四）co-4.0新变化 | blog of purplebamboo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
+    
+    <meta name="author" content="purplebamboo">
+    
+    <meta name="description" content="koa是TJ大神新一代的中间件框架，本系列旨在一步一步实现koa的功能，包括下面这些。
+
+koa源码分析系列（一）generator
+koa源码分析系列（二）co的实现
+koa源码分析系列（三）koa的中间件机制实现
+koa源码分析系列（四）co-4.0新变化
+
+koa基于co实现，co又是使用了e">
+    
+    
+    
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/pacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/pacman.jpg">
+    
+    <link rel="stylesheet" href="/css/style.css" type="text/css">
+</head>
+
+  <body>
+    <header>
+      <div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.svg" alt="blog of purplebamboo" title="blog of purplebamboo"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="blog of purplebamboo">blog of purplebamboo</a></h1>
+				<h2 class="blog-motto">dota诚可贵，coding价更高，若为女朋友，二者皆可抛。</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">首页</a></li>
+					
+						<li><a href="/archives">归档</a></li>
+					
+						<li><a href="/categories">分类</a></li>
+					
+						<li><a href="/about">关于</a></li>
+					
+					<li>
+					
+					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="text" id="search" name="q" autocomplete="off" maxlength="20" placeholder="搜索" />
+						<input type="hidden" name="q" value="site:purplebamboo.github.com">
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2015/01/16/koa-source-analytics-4/" title="koa源码分析系列（四）co-4.0新变化" itemprop="url">koa源码分析系列（四）co-4.0新变化</a>
+  </h1>
+  <p class="article-author">By
+    
+      <a href="http://purplebamboo.github.com" title="purplebamboo">purplebamboo</a>
+    </p>
+  <p class="article-time">
+    <time datetime="2015-01-16T10:39:27.000Z" itemprop="datePublished">1月 16 2015</time>
+    更新日期:<time datetime="2015-01-17T14:23:31.000Z" itemprop="dateModified">1月 17 2015</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#核心代码分析"><span class="toc-number">1.</span> <span class="toc-text">核心代码分析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#co的错误处理"><span class="toc-number">2.</span> <span class="toc-text">co的错误处理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#toPromise的实现"><span class="toc-number">3.</span> <span class="toc-text">toPromise的实现</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#结语"><span class="toc-number">4.</span> <span class="toc-text">结语</span></a></li></ol>
+		</div>
+		
+		<p>koa是TJ大神新一代的中间件框架，本系列旨在一步一步实现koa的功能，包括下面这些。</p>
+<ol>
+<li><a href="/2014/05/24/koa-source-analytics-1/">koa源码分析系列（一）generator</a></li>
+<li><a href="/2014/05/24/koa-source-analytics-2/">koa源码分析系列（二）co的实现</a></li>
+<li><a href="/2014/05/24/koa-source-analytics-3/">koa源码分析系列（三）koa的中间件机制实现</a></li>
+<li><a href="/2015/01/16/koa-source-analytics-4/">koa源码分析系列（四）co-4.0新变化</a></li>
+</ol>
+<p>koa基于co实现，co又是使用了es6的generator特性，所以，没错这个特性支持很一般。<br>有下面几种办法体验generator：</p>
+<ul>
+<li>node v0.11 可以使用 (node —harmony)</li>
+<li>使用gnode来使用，不过据说性能一般</li>
+<li>使用chrome体验，打开chrome://flags/, 搜索harmony, 启用,重启chrome即可。</li>
+</ul>
+<h2 id="核心代码分析">核心代码分析</h2>
+<p>之前写过一篇co的源码分析文章，但是不久之后co就发生了重大变化，就是完全抛弃了thunk风格的函数。全部转用promise。于是，找了个时间我再次看了下源码。简单记录下。</p>
+<p>本文假设你已经熟悉了es6里面promise的基本用法。如果不是特别清楚的可以参考下面几篇文章：</p>
+<ol>
+<li><a href="http://purplebamboo.github.io/2015/01/16/promise/" target="_blank">http://purplebamboo.github.io/2015/01/16/promise/</a></li>
+<li><a href="http://www.w3ctech.com/topic/721" target="_blank">http://www.w3ctech.com/topic/721</a></li>
+<li><a href="http://www.cnblogs.com/fsjohnhuang/p/4135149.html" target="_blank">http://www.cnblogs.com/fsjohnhuang/p/4135149.html</a></li>
+<li><a href="http://wohugb.gitbooks.io/ecmascript-6/content/docs/promise.html" target="_blank">http://wohugb.gitbooks.io/ecmascript-6/content/docs/promise.html</a></li>
+</ol>
+<p>co4.0全部采用promise来实现。下面我们分析下代码。</p>
+<p>首先co的用法发生了改变：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+</pre></td><td class="code"><pre>co(<span class="function"><span class="keyword">function</span>* <span class="params">()</span> {</span>
+  <span class="keyword">var</span> result = <span class="keyword">yield</span> Promise.resolve(<span class="literal">true</span>);
+  <span class="keyword">return</span> result;
+}).then(<span class="function"><span class="keyword">function</span> <span class="params">(value)</span> {</span>
+  console.log(value);
+}, <span class="function"><span class="keyword">function</span> <span class="params">(err)</span> {</span>
+  console.error(err.stack);
+});
+</pre></td></tr></table></figure>
+
+<p>可以看到co还是接受了一个generatorFunction作为参数，实际上参数如果是一个generator对象也是可以的。如果是generatorFunction，co内部会帮你执行生成对应的generator对象。</p>
+<p>不同的是co不再返回一个thunk函数，而是返回了一个promise对象。</p>
+<p>yield后面推荐的也是promise对象，而不是thunk函数了。</p>
+<p>我们看下实现：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+</pre></td><td class="code"><pre><span class="function"><span class="keyword">function</span> <span class="title">co</span><span class="params">(gen)</span> {</span>
+  <span class="keyword">var</span> ctx = <span class="keyword">this</span>;
+
+  <span class="comment">//如果是generatorFunction,就执行 获得对应的generator对象</span>
+  <span class="keyword">if</span> (<span class="keyword">typeof</span> gen === <span class="string">'function'</span>) gen = gen.call(<span class="keyword">this</span>);
+
+  <span class="comment">//返回一个promise</span>
+  <span class="keyword">return</span> <span class="keyword">new</span> Promise(<span class="function"><span class="keyword">function</span><span class="params">(resolve, reject)</span> {</span>
+
+    <span class="comment">//初始化入口函数，第一次调用</span>
+    onFulfilled();
+
+    <span class="comment">//成功状态下的回调</span>
+    <span class="function"><span class="keyword">function</span> <span class="title">onFulfilled</span><span class="params">(res)</span> {</span>
+      <span class="keyword">var</span> ret;
+      <span class="keyword">try</span> {
+        <span class="comment">//拿到第一个yield返回的对象值ret</span>
+        ret = gen.next(res);
+      } <span class="keyword">catch</span> (e) {
+        <span class="comment">//出错直接调用reject把promise置为失败状态</span>
+        <span class="keyword">return</span> reject(e);
+      }
+      <span class="comment">//开启调用链</span>
+      next(ret);
+    }
+
+    <span class="function"><span class="keyword">function</span> <span class="title">onRejected</span><span class="params">(err)</span> {</span>
+      <span class="keyword">var</span> ret;
+      <span class="keyword">try</span> {
+        <span class="comment">//抛出错误，这边使用generator对象throw。这个的好处是可以在co的generatorFunction里面使用try捕获到这个异常。</span>
+        ret = gen.throw(err);
+      } <span class="keyword">catch</span> (e) {
+        <span class="keyword">return</span> reject(e);
+      }
+      next(ret);
+    }
+
+
+    <span class="function"><span class="keyword">function</span> <span class="title">next</span><span class="params">(ret)</span> {</span>
+      <span class="comment">//如果执行完成，直接调用resolve把promise置为成功状态</span>
+      <span class="keyword">if</span> (ret.done) <span class="keyword">return</span> resolve(ret.value);
+      <span class="comment">//把yield的值转换成promise</span>
+      <span class="comment">//支持 promise，generator，generatorFunction，array，object</span>
+      <span class="comment">//toPromise的实现可以先不管，只要知道是转换成promise就行了</span>
+      <span class="keyword">var</span> value = toPromise.call(ctx, ret.value);
+
+      <span class="comment">//成功转换就可以直接给新的promise添加onFulfilled, onRejected。当新的promise状态变成结束态（成功或失败）。就会调用对应的回调。整个next链路就执行下去了。</span>
+      <span class="keyword">if</span> (value && isPromise(value)) <span class="keyword">return</span> value.then(onFulfilled, onRejected);
+
+      <span class="comment">//否则说明有错误，调用onRejected给出错误提示</span>
+      <span class="keyword">return</span> onRejected(<span class="keyword">new</span> <span class="built_in">TypeError</span>(<span class="string">'You may only yield a function, promise, generator, array, or object, '</span>
+        + <span class="string">'but the following object was passed: "'</span> + <span class="built_in">String</span>(ret.value) + <span class="string">'"'</span>));
+    }
+  });
+}
+
+<span class="function"><span class="keyword">function</span> <span class="title">isPromise</span><span class="params">(obj)</span> {</span>
+  <span class="keyword">return</span> <span class="string">'function'</span> == <span class="keyword">typeof</span> obj.then;
+}
+</pre></td></tr></table></figure>
+
+<p>核心代码主要是onFulfilled与next的实现。</p>
+<p>我们先不考虑错误处理看下执行流程。也先不看toPromise的实现。假定我们只是yield一个promise对象。</p>
+<p>例子：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+</pre></td><td class="code"><pre>
+co(<span class="function"><span class="keyword">function</span>* <span class="params">()</span> {</span>
+  <span class="keyword">var</span> a = <span class="keyword">yield</span> Promise.resolve(<span class="string">'传给a的值'</span>);
+  <span class="keyword">var</span> b = <span class="keyword">yield</span> Promise.resolve(<span class="string">'传给b的值'</span>);
+  <span class="keyword">return</span> b;
+}).then(<span class="function"><span class="keyword">function</span> <span class="params">(value)</span> {</span>
+  console.log(value);
+}, <span class="function"><span class="keyword">function</span> <span class="params">(err)</span> {</span>
+  console.error(err.stack);
+});
+</pre></td></tr></table></figure>
+
+<p>假设：</p>
+<ul>
+<li><code>Promise.resolve(&#39;传给a的值&#39;);</code>生成的叫做promise对象A。</li>
+<li><code>Promise.resolve(&#39;传给b的值&#39;);</code>生成的叫做promise对象B。</li>
+</ul>
+<p>onFulfilled作为入口函数。</p>
+<ol>
+<li>调用gen.next(res)。这时候代码会执行到<code>yield Promise.resolve(&#39;传给a的值&#39;);</code>然后停住。拿到了返回值`{value:’promise对象A’,done:false}。</li>
+<li>然后调用next（ret）,传递ret对象。next里面调用promise对象A的then添加操作函数。</li>
+<li>等promise对象A变成了成功状态，就会再次调用onFulfilled，并且传入resolve的值。</li>
+<li>于是再次重复1。代码会执行到<code>yield Promise.resolve(&#39;传给b的值&#39;);</code>停住。不同的是这次调用onFulfilled会传递res的值。通过gen.next(res)会把res也就是resolve的值赋值给a。</li>
+</ol>
+<p>然后继续这个过程，一直到最后return的时候。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre>1
+2
+</pre></td><td class="code"><pre><span class="comment">//co包裹的generatorFunction return后 ret.done为true。这个时候就可以resole `Co生成的promise对象`了。</span>
+<span class="keyword">if</span> (ret.done) <span class="keyword">return</span> resolve(ret.value);
+</pre></td></tr></table></figure>
+
+<p>这样整个调用链就执行下去了。可以看到主要是使用promise的then方法添加onfullied操作函数，来实现自动调用<code>gen.next()</code>。</p>
+<h2 id="co的错误处理">co的错误处理</h2>
+<p>co的错误处理主要使用onRejected实现，基本逻辑跟onFulfilled差不多，这边主要说一下<code>gen.throw(err);</code>的原理。<br>generator对象的一个特性是可以在generatorFunction外面抛出异常,在generatorFunction里面捕获到这个异常。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+</pre></td><td class="code"><pre><span class="function"><span class="keyword">function</span> *<span class="title">test</span><span class="params">()</span>{</span>
+    <span class="keyword">try</span>{
+        <span class="keyword">yield</span> <span class="string">'a'</span>
+        <span class="keyword">yield</span> <span class="string">'b'</span>
+    }<span class="keyword">catch</span>(e){
+        console.log(<span class="string">'内部捕获：'</span>)
+        console.log(e)
+    }
+}
+
+<span class="keyword">var</span> g = test()
+g.next()
+
+g.throw(<span class="string">'外面报错消息'</span>)
+
+<span class="comment">/*结果
+*内部捕获：
+*外面报错消息
+*
+*/</span>
+</pre></td></tr></table></figure>
+
+<p>当我们运行gen.next()的时候，会运行到yield ‘a’这一句。这一句正好在内部的try范围内，因此<code>g.throw(&#39;外面报错消息&#39;)</code>这个抛出的错误会被捕获到。</p>
+<p>如果我们不调用gen.next()或者连续调用三次gen.next()。代码执行不在try的范围，这个时候去gen.throw错误就不会被内部捕获到。</p>
+<p>所以co里面用了这个特性，可以让你针对某一个或多个yield加上try，catch代码。<br>co发现某个内部promise报错就会调用onRejected然后调用gen.throw抛出错误。</p>
+<p>如果你不处理错误，co就调用reject(err)传递给包装后的co返回的promise对象。这样你就可以在co(*fn).catch 拿到这个错误。</p>
+<h2 id="toPromise的实现">toPromise的实现</h2>
+<p>我们看下toPromise的代码:</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+</pre></td><td class="code"><pre><span class="function"><span class="keyword">function</span> <span class="title">toPromise</span><span class="params">(obj)</span> {</span>
+
+  <span class="keyword">if</span> (!obj) <span class="keyword">return</span> obj;
+  <span class="comment">//是promise就直接返回</span>
+  <span class="keyword">if</span> (isPromise(obj)) <span class="keyword">return</span> obj;
+  <span class="comment">//如果是generator对象或者generatorFunction就直接用co包一层，最后会返回一个包装好的promise。</span>
+  <span class="keyword">if</span> (isGeneratorFunction(obj) || isGenerator(obj)) <span class="keyword">return</span> co.call(<span class="keyword">this</span>, obj);
+  <span class="comment">//如果是thunk函数就调用thunkToPromise转换</span>
+  <span class="keyword">if</span> (<span class="string">'function'</span> == <span class="keyword">typeof</span> obj) <span class="keyword">return</span> thunkToPromise.call(<span class="keyword">this</span>, obj);
+  <span class="comment">//是数组就使用arrayToPromise转换</span>
+  <span class="keyword">if</span> (<span class="built_in">Array</span>.isArray(obj)) <span class="keyword">return</span> arrayToPromise.call(<span class="keyword">this</span>, obj);
+  <span class="comment">//是对象就使用objectToPromise转换</span>
+  <span class="keyword">if</span> (isObject(obj)) <span class="keyword">return</span> objectToPromise.call(<span class="keyword">this</span>, obj);
+  <span class="keyword">return</span> obj;
+}
+</pre></td></tr></table></figure>
+
+<p>主要就是各种判断，把不同类型的yield值转换成一个promise对象。<br>前面几个都很简单不说了。</p>
+<p>thunkToPromise比较简单如下：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+</pre></td><td class="code"><pre><span class="function"><span class="keyword">function</span> <span class="title">thunkToPromise</span><span class="params">(fn)</span> {</span>
+  <span class="keyword">var</span> ctx = <span class="keyword">this</span>;
+  <span class="comment">//主要就是新new一个promise对象，在thunk的回调里resolve这个promise对象</span>
+  <span class="keyword">return</span> <span class="keyword">new</span> Promise(<span class="function"><span class="keyword">function</span> <span class="params">(resolve, reject)</span> {</span>
+    fn.call(ctx, <span class="function"><span class="keyword">function</span> <span class="params">(err, res)</span> {</span>
+      <span class="comment">//错误就调用reject抛出错误</span>
+      <span class="keyword">if</span> (err) <span class="keyword">return</span> reject(err);
+      <span class="comment">//对多个参数的支持</span>
+      <span class="keyword">if</span> (<span class="built_in">arguments</span>.length &gt; <span class="number">2</span>) res = slice.call(<span class="built_in">arguments</span>, <span class="number">1</span>);
+      resolve(res);
+    });
+  });
+}
+</pre></td></tr></table></figure>
+
+<p>arrayToPromise也比较容易：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+</pre></td><td class="code"><pre><span class="function"><span class="keyword">function</span> <span class="title">arrayToPromise</span><span class="params">(obj)</span> {</span>
+  <span class="comment">//直接调用Promise的静态方法包装一个新的promise对象。然后对于每个value调用toPromise进行递归的包装</span>
+  <span class="keyword">return</span> Promise.all(obj.map(toPromise, <span class="keyword">this</span>));
+}
+</pre></td></tr></table></figure>
+
+<p>objectToPromise会稍微绕一点：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+</pre></td><td class="code"><pre><span class="function"><span class="keyword">function</span> <span class="title">objectToPromise</span><span class="params">(obj)</span>{</span>
+  <span class="comment">//小技巧，生成一个跟obj一样类型的克隆空对象</span>
+  <span class="keyword">var</span> results = <span class="keyword">new</span> obj.constructor();
+  <span class="comment">//拿到 对象的所有key，返回key的集合数组</span>
+  <span class="keyword">var</span> keys = <span class="built_in">Object</span>.keys(obj);
+  <span class="keyword">var</span> promises = [];
+
+  <span class="comment">//遍历所有值</span>
+  <span class="keyword">for</span> (<span class="keyword">var</span> i = <span class="number">0</span>; i &lt; keys.length; i++) {
+    <span class="keyword">var</span> key = keys[i];
+
+    <span class="comment">//递归调用</span>
+    <span class="keyword">var</span> promise = toPromise.call(<span class="keyword">this</span>, obj[key]);
+    <span class="comment">//如果转换后是promise对象，就异步的去赋值</span>
+    <span class="keyword">if</span> (promise && isPromise(promise)) defer(promise, key);
+    <span class="comment">//如果不能转换，说明是纯粹的值。就直接赋值</span>
+    <span class="keyword">else</span> results[key] = obj[key];
+  }
+
+  <span class="comment">//监听所有队列里面的promise对象，等所有的promise对象成功了，代表都赋值完成了。就可以调用then，返回结果results了。</span>
+  <span class="keyword">return</span> Promise.all(promises).then(<span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>
+    <span class="keyword">return</span> results;
+  });
+
+  <span class="function"><span class="keyword">function</span> <span class="title">defer</span><span class="params">(promise, key)</span> {</span>
+    <span class="comment">//先占位</span>
+    results[key] = <span class="literal">undefined</span>;
+    <span class="comment">//把当前promise加入待监听promise数组队列</span>
+    promises.push(promise.then(<span class="function"><span class="keyword">function</span> <span class="params">(res)</span> {</span>
+      <span class="comment">//等当前promise变成成功态的时候赋值</span>
+      results[key] = res;
+    }));
+  }
+}
+</pre></td></tr></table></figure>
+
+<p>objectToPromise的主要思路是循环递归遍历对象的值</p>
+<ul>
+<li>如果发现是纯粹的值，就直接赋值给结果对象。</li>
+<li>如果发现是可以转化为promise的就调用defer异步的把值添加到results里面，同时把promise对象放到监听的数组里。</li>
+<li>这样在最外围只要使用Promise.all去监听这些promise对象。等他们都执行完了代表results已经被正确的赋值。于是再通过then，改变要反回的promise对象的要resolve的值。</li>
+</ul>
+<h2 id="结语">结语</h2>
+<p>整个分析到这就结束了，新版的co代码非常清晰也更加容易理解。不过完全抛弃thunk不知道TJ大神怎么想的。好像目前的koa还是使用的老的co来实现的。不管怎么说，还是值得看一看的。</p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/koa/">koa</a><a href="/tags/javascript/">javascript</a><a href="/tags/nodejs/">nodejs</a><a href="/tags/co/">co</a>
+  </div>
+
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/javascript/">javascript</a>►<a class="article-category-link" href="/categories/javascript/源码分析/">源码分析</a>
+</div>
+
+
+
+<div class="article-share" id="share">
+
+  <div data-url="http://purplebamboo.github.com/2015/01/16/koa-source-analytics-4/" data-title="koa源码分析系列（四）co-4.0新变化 | blog of purplebamboo" data-tsina="null" class="share clearfix">
+  </div>
+
+</div>
+</footer>   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2015/01/17/javascript-module/" title="javascript模块加载器实践">
+  <strong>PREVIOUS:</strong><br/>
+  <span>
+  javascript模块加载器实践</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2015/01/16/promise/"  title="promise规范">
+ <strong>NEXT:</strong><br/> 
+ <span>promise规范
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section class="comment">
+	<div class="ds-thread"></div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+  <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#核心代码分析"><span class="toc-number">1.</span> <span class="toc-text">核心代码分析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#co的错误处理"><span class="toc-number">2.</span> <span class="toc-text">co的错误处理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#toPromise的实现"><span class="toc-number">3.</span> <span class="toc-text">toPromise的实现</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#结语"><span class="toc-number">4.</span> <span class="toc-text">结语</span></a></li></ol>
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+			<li><a href="/categories/angularjs记录/" title="angularjs记录">angularjs记录<sup>9</sup></a></li>
+		
+			<li><a href="/categories/css/" title="css">css<sup>1</sup></a></li>
+		
+			<li><a href="/categories/iconfont技术/" title="iconfont技术">iconfont技术<sup>1</sup></a></li>
+		
+			<li><a href="/categories/javascript/" title="javascript">javascript<sup>15</sup></a></li>
+		
+			<li><a href="/categories/javascript/nodejs/" title="nodejs">nodejs<sup>2</sup></a></li>
+		
+			<li><a href="/categories/从零单排/" title="从零单排">从零单排<sup>1</sup></a></li>
+		
+			<li><a href="/categories/各种知识点记录/" title="各种知识点记录">各种知识点记录<sup>1</sup></a></li>
+		
+			<li><a href="/categories/javascript/源码分析/" title="源码分析">源码分析<sup>5</sup></a></li>
+		
+			<li><a href="/categories/系统环境/" title="系统环境">系统环境<sup>1</sup></a></li>
+		
+			<li><a href="/categories/angularjs记录/翻译/" title="翻译">翻译<sup>1</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			<li><a href="/tags/Filters/" title="Filters">Filters<sup>1</sup></a></li>
+		
+			<li><a href="/tags/analyze/" title="analyze">analyze<sup>1</sup></a></li>
+		
+			<li><a href="/tags/angular/" title="angular">angular<sup>2</sup></a></li>
+		
+			<li><a href="/tags/angularjs/" title="angularjs">angularjs<sup>7</sup></a></li>
+		
+			<li><a href="/tags/ast/" title="ast">ast<sup>1</sup></a></li>
+		
+			<li><a href="/tags/async/" title="async">async<sup>1</sup></a></li>
+		
+			<li><a href="/tags/border-shadow/" title="border-shadow">border-shadow<sup>1</sup></a></li>
+		
+			<li><a href="/tags/chunked/" title="chunked">chunked<sup>1</sup></a></li>
+		
+			<li><a href="/tags/class/" title="class">class<sup>1</sup></a></li>
+		
+			<li><a href="/tags/co/" title="co">co<sup>2</sup></a></li>
+		
+			<li><a href="/tags/comet/" title="comet">comet<sup>1</sup></a></li>
+		
+			<li><a href="/tags/controllers/" title="controllers">controllers<sup>1</sup></a></li>
+		
+			<li><a href="/tags/css3/" title="css3">css3<sup>1</sup></a></li>
+		
+			<li><a href="/tags/generator/" title="generator">generator<sup>1</sup></a></li>
+		
+			<li><a href="/tags/git/" title="git">git<sup>1</sup></a></li>
+		
+			<li><a href="/tags/gulp/" title="gulp">gulp<sup>1</sup></a></li>
+		
+			<li><a href="/tags/html/" title="html">html<sup>1</sup></a></li>
+		
+			<li><a href="/tags/iconfont/" title="iconfont">iconfont<sup>1</sup></a></li>
+		
+			<li><a href="/tags/javascript/" title="javascript">javascript<sup>15</sup></a></li>
+		
+			<li><a href="/tags/koa/" title="koa">koa<sup>2</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+      <li><a href="http://ued.taobao.com/" target="_blank">淘宝UED</a> </li>            <li><a href="http://www.aliued.com/" target="_blank">Alibaba国际站UED</a> </li>            <li><a href="http://china.aliued.com/" target="_blank">Alibaba中文站UED</a> </li>            <li><a href="http://ued.alipay.com/" target="_blank"> 支付宝UED</a> </li>            <li><a href="http://ued.tmall.com/" target="_blank">天猫UED</a> </li><li><a href="http://ur.alibaba-inc.com">阿里用户体验中心</a> </li>	 <li><a href="http://www.uisdc.com" target="_blank">优秀网页设计</a> </li>
+      
+    </ul>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+		<p class="copyright">Powered by <a href="http://zespia.tw/hexo/" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/A-limon/pacman" target="_blank" title="Pacman">Pacman</a> © 2015 
+		
+		<a href="http://purplebamboo.github.com" target="_blank" title="purplebamboo">purplebamboo</a>
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.1.0.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else
+    {
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      h  = $('article h2')
+      ah = $('article h2'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  if(ah.length==0){
+    t.css('display','none');
+  }else{
+    c.click(function(){
+      ta.css('display', 'block').addClass('fadeIn');
+    });
+    o.click(function(){
+      ta.css('display', 'none');
+    });
+    $(window).scroll(function(){
+      ta.css("top",Math.max(140,320-$(this).scrollTop()));
+    });
+  };
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#share"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="#textlogo" class="article-back-to-top" title="Top"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="QRcode"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="Weibo"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"cherishpeace"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+
+
+
+
+<script type="text/javascript">
+  $(function(){
+    window.onscroll = function(){
+      //console.log($(document).scrollTop()+"px")
+      $('.background-container .bg-dy2').css('backgroundPosition','0 '+$(document).scrollTop()+"px");
+    }
+
+  })
+</script>
+<div class="background-container">
+  <div class="bg-dy1">
+
+  </div>
+  <div class="bg-dy2">
+
+  </div>
+
+</div
+
+  </body>
+</html>

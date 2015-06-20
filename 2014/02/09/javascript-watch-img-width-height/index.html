@@ -1,0 +1,784 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>javascript 上传图片 检测宽度 高度 文件大小 | blog of purplebamboo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
+    
+    <meta name="author" content="purplebamboo">
+    
+    <meta name="description" content="最近做一个iframe上传的组件，需要限制上传文件的 高度宽度还有 大小。所以研究了下如何使用js获取这些信息。网上的内容很多，不过很多解决方案都是有问题，下面进行些罗列和分析。网上的几种解决方案
+第一种：
+1
+2
+3
+4
+var image1 = new Image();
+image1.dynsr">
+    
+    
+    
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/pacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/pacman.jpg">
+    
+    <link rel="stylesheet" href="/css/style.css" type="text/css">
+</head>
+
+  <body>
+    <header>
+      <div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.svg" alt="blog of purplebamboo" title="blog of purplebamboo"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="blog of purplebamboo">blog of purplebamboo</a></h1>
+				<h2 class="blog-motto">dota诚可贵，coding价更高，若为女朋友，二者皆可抛。</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">首页</a></li>
+					
+						<li><a href="/archives">归档</a></li>
+					
+						<li><a href="/categories">分类</a></li>
+					
+						<li><a href="/about">关于</a></li>
+					
+					<li>
+					
+					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="text" id="search" name="q" autocomplete="off" maxlength="20" placeholder="搜索" />
+						<input type="hidden" name="q" value="site:purplebamboo.github.com">
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2014/02/09/javascript-watch-img-width-height/" title="javascript 上传图片 检测宽度 高度 文件大小" itemprop="url">javascript 上传图片 检测宽度 高度 文件大小</a>
+  </h1>
+  <p class="article-author">By
+    
+      <a href="http://purplebamboo.github.com" title="purplebamboo">purplebamboo</a>
+    </p>
+  <p class="article-time">
+    <time datetime="2014-02-09T07:31:40.000Z" itemprop="datePublished">2月 9 2014</time>
+    更新日期:<time datetime="2014-08-20T23:19:06.000Z" itemprop="dateModified">8月 21 2014</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#第一种："><span class="toc-number">1.</span> <span class="toc-text">第一种：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#第二种："><span class="toc-number">2.</span> <span class="toc-text">第二种：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#第三种："><span class="toc-number">3.</span> <span class="toc-text">第三种：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#第四种"><span class="toc-number">4.</span> <span class="toc-text">第四种</span></a></li></ol>
+		</div>
+		
+		<p>最近做一个iframe上传的组件，需要限制上传文件的 高度宽度还有 大小。所以研究了下如何使用js获取这些信息。<br>网上的内容很多，不过很多解决方案都是有问题，下面进行些罗列和分析。<br>网上的几种解决方案</p>
+<h2 id="第一种：">第一种：</h2>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+</pre></td><td class="code"><pre><span class="keyword">var</span> image1 = <span class="keyword">new</span> Image();
+image1.dynsrc = path;
+alert(image1.dynsrc);  <span class="comment">//这里路径显示真确</span>
+alert(image1.fileSize);  <span class="comment">//但是这里老是-1 为什么？？</span>
+</pre></td></tr></table></figure>
+
+<p>老是-1 是因为没有加载完，所以需要onload判断<br>dynsrc只有ie支持，但是连ie自己都给放弃了，经测试只有ie6支持。7,8都不行。<br>应该使用src属性。</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+</pre></td><td class="code"><pre><span class="keyword">var</span> image = <span class="keyword">new</span> Image();
+image.onload =<span class="function"><span class="keyword">function</span><span class="params">()</span>{</span>
+    <span class="keyword">var</span> width = image.width;
+    <span class="keyword">var</span> height = image.height;
+    <span class="keyword">var</span> fileSize = image.fileSize;
+    <span class="comment">//alert(width+'======'+height+"====="+fileSize);</span>
+}
+image.src = path;
+</pre></td></tr></table></figure>
+
+<p>改成这个后，测试 ie系列都支持，但是 在chrome等现代浏览器下是不行的，chrome这些浏览器 不允许读取本地的文件。<br>这边需要注意的是：最好将onload函数放在image.src = path 的前面，因为image对象下次加载时会优先读取缓存，onload放在后面可能会造成加载太快，来不及触发onload事件。</p>
+<h2 id="第二种：">第二种：</h2>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+</pre></td><td class="code"><pre><span class="function"><span class="keyword">function</span> <span class="title">getFileSize</span><span class="params">(filePath)</span>     
+{</span>     
+    <span class="keyword">var</span> fso = <span class="keyword">new</span> ActiveXObject(<span class="string">"Scripting.FileSystemObject"</span>);     
+    alert(<span class="string">"文件大小为："</span>+fso.GetFile(filePath).size);     
+}
+</pre></td></tr></table></figure>
+
+<p>没有测试 基本没有意义，会弹出安全提示<br>这种方法可以实现，也容易被开发人员想到，但是需要更改浏览器的安全设置，不然会报“Automation服务器不能创建对象”这个脚本错误。将浏览器的安全设置改为“中”，然后将ActiveX的设置设为启用就OK了，显然不能对用户做出什么要求，所以不推荐。</p>
+<h2 id="第三种：">第三种：</h2>
+<p>使用html5的 <a href="http://caniuse.com/fileapi" target="_blank">http://caniuse.com/fileapi</a></p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+</pre></td><td class="code"><pre>    <span class="keyword">var</span> f = document.getElementById(<span class="string">"file"</span>).files[<span class="number">0</span>];
+    <span class="keyword">var</span> reader = <span class="keyword">new</span> FileReader();
+    reader.onload = <span class="function"><span class="keyword">function</span> <span class="params">(e)</span> {</span>
+        <span class="keyword">var</span> data = e.target.result;
+        <span class="comment">//加载图片获取图片真实宽度和高度</span>
+        <span class="keyword">var</span> image = <span class="keyword">new</span> Image();
+        image.onload=<span class="function"><span class="keyword">function</span><span class="params">()</span>{</span>
+            <span class="keyword">var</span> width = image.width;
+            <span class="keyword">var</span> height = image.height;
+            alert(width+<span class="string">'======'</span>+height+<span class="string">"====="</span>+f.size);
+        };
+        image.src= data;
+   };
+   reader.readAsDataURL(f);
+</pre></td></tr></table></figure>
+
+<p>这是使用的html5技术，测试大部分现代浏览器都是可行的。</p>
+<h2 id="第四种">第四种</h2>
+<p>经过查看开源组件的源码，发现了一种独特的写法，通过ie的滤镜实现读取文件的宽度高度</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+</pre></td><td class="code"><pre><span class="keyword">var</span> input = <span class="keyword">self</span>.input[<span class="number">0</span>]
+<span class="keyword">var</span> temp_document = <span class="keyword">self</span>.iframe[<span class="number">0</span>].contentDocument || <span class="keyword">self</span>.iframe[<span class="number">0</span>].document;
+input.<span class="keyword">select</span>();
+<span class="comment">//确保IE9下，不会出现因为安全问题导致无法访问</span>
+input.blur();
+<span class="keyword">var</span> src = temp_document.selection.createRange().text;
+<span class="keyword">var</span> img = $(<span class="string">'&lt;img style="filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(sizingMethod=image);width:300px;visibility:hidden;"  /&gt;'</span>).appendTo(<span class="string">'body'</span>).getDOMNode();
+img.filters.item(<span class="string">'DXImageTransform.Microsoft.AlphaImageLoader'</span>).src = src;
+<span class="keyword">var</span> width = img.offsetWidth;
+<span class="keyword">var</span> height = img.offsetHeight;
+$(img).<span class="keyword">remove</span>();
+</pre></td></tr></table></figure>
+
+<p>此代码需要jquery选择器的支持。这种方法据说最稳定。</p>
+<p>通过以上的分析，确定出一种最稳妥的跨浏览器的解决方案为</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+</pre></td><td class="code"><pre>window.check=<span class="function"><span class="keyword">function</span><span class="params">()</span>{</span>
+<span class="keyword">var</span> input = document.getElementById(<span class="string">"file"</span>);
+<span class="keyword">if</span>(input.files){
+                <span class="comment">//读取图片数据</span>
+  <span class="keyword">var</span> f = input.files[<span class="number">0</span>];
+  <span class="keyword">var</span> reader = <span class="keyword">new</span> FileReader();
+  reader.onload = <span class="function"><span class="keyword">function</span> <span class="params">(e)</span> {</span>
+      <span class="keyword">var</span> data = e.target.result;
+      <span class="comment">//加载图片获取图片真实宽度和高度</span>
+      <span class="keyword">var</span> image = <span class="keyword">new</span> Image();
+      image.onload=<span class="function"><span class="keyword">function</span><span class="params">()</span>{</span>
+          <span class="keyword">var</span> width = image.width;
+          <span class="keyword">var</span> height = image.height;
+          alert(width+<span class="string">'======'</span>+height+<span class="string">"====="</span>+f.size);
+      };
+      image.src= data;
+  };
+  reader.readAsDataURL(f);
+  }<span class="keyword">else</span>{
+  <span class="keyword">var</span> image = <span class="keyword">new</span> Image(); 
+  image.onload =<span class="function"><span class="keyword">function</span><span class="params">()</span>{</span>
+      <span class="keyword">var</span> width = image.width;
+      <span class="keyword">var</span> height = image.height;
+      <span class="keyword">var</span> fileSize = image.fileSize;
+      alert(width+<span class="string">'======'</span>+height+<span class="string">"====="</span>+fileSize);
+  }
+  image.src = input.value;
+
+  }
+
+}
+</pre></td></tr></table></figure>
+
+<p>对应的html为：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+</pre></td><td class="code"><pre>&lt;input id=<span class="string">"file"</span> <span class="class"><span class="keyword">type</span>=</span><span class="string">"file"</span>&gt;
+&lt;input id=<span class="string">"Button1"</span> <span class="class"><span class="keyword">type</span>=</span><span class="string">"button"</span> <span class="keyword">value</span>=<span class="string">"button"</span> onclick=<span class="string">"check()"</span>&gt;
+</pre></td></tr></table></figure>
+
+<p>ps:<br>这个地址<a href="http://www.planeart.cn/?p=1121" target="_blank">http://www.planeart.cn/?p=1121</a> 使用一种方式可以很方便的提前获取 width和height  非常好<br>思路是，浏览器在图片未加载完时会通过http协议的header提前知道width和height，所以通过一个计时器，不停检测，快速的得到宽度高度。</p>
+<p>代码如下：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+</pre></td><td class="code"><pre><span class="comment">// 更新：</span>
+<span class="comment">// 05.27: 1、保证回调执行顺序：error &gt; ready &gt; load；2、回调函数this指向img本身</span>
+<span class="comment">// 04-02: 1、增加图片完全加载后的回调 2、提高性能</span>
+
+<span class="comment">/**
+ * 图片头数据加载就绪事件 - 更快获取图片尺寸
+ *<span class="phpdoc"> @version</span> 2011.05.27
+ *<span class="phpdoc"> @author</span>  TangBin
+ *<span class="phpdoc"> @see</span>   http://www.planeart.cn/?p=1121
+ *<span class="phpdoc"> @param</span> {String}  图片路径
+ *<span class="phpdoc"> @param</span> {Function}  尺寸就绪
+ *<span class="phpdoc"> @param</span> {Function}  加载完毕 (可选)
+ *<span class="phpdoc"> @param</span> {Function}  加载错误 (可选)
+ *<span class="phpdoc"> @example</span> imgReady('http://www.google.com.hk/intl/zh-CN/images/logo_cn.png', function () {
+    alert('size ready: width=' + this.width + '; height=' + this.height);
+  });
+ */</span>
+<span class="keyword">var</span> imgReady = (<span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>
+  <span class="keyword">var</span> <span class="keyword">list</span> = [], intervalId = <span class="keyword">null</span>,
+
+  <span class="comment">// 用来执行队列</span>
+  tick = <span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>
+    <span class="keyword">var</span> i = <span class="number">0</span>;
+    <span class="keyword">for</span> (; i &lt; <span class="keyword">list</span>.length; i++) {
+      <span class="keyword">list</span>[i].end ? <span class="keyword">list</span>.splice(i--, <span class="number">1</span>) : <span class="keyword">list</span>[i]();
+    };
+    !<span class="keyword">list</span>.length && stop();
+  },
+
+  <span class="comment">// 停止所有定时器队列</span>
+  stop = <span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>
+    clearInterval(intervalId);
+    intervalId = <span class="keyword">null</span>;
+  };
+
+  <span class="keyword">return</span> <span class="function"><span class="keyword">function</span> <span class="params">(url, ready, load, error)</span> {</span>
+    <span class="keyword">var</span> onready, width, height, newWidth, newHeight,
+      img = <span class="keyword">new</span> Image();
+    
+    img.src = url;
+
+    <span class="comment">// 如果图片被缓存，则直接返回缓存数据</span>
+    <span class="keyword">if</span> (img.complete) {
+      ready.call(img);
+      load && load.call(img);
+      <span class="keyword">return</span>;
+    };
+    
+    width = img.width;
+    height = img.height;
+    
+    <span class="comment">// 加载错误后的事件</span>
+    img.onerror = <span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>
+      error && error.call(img);
+      onready.end = <span class="keyword">true</span>;
+      img = img.onload = img.onerror = <span class="keyword">null</span>;
+    };
+    
+    <span class="comment">// 图片尺寸就绪</span>
+    onready = <span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>
+      newWidth = img.width;
+      newHeight = img.height;
+      <span class="keyword">if</span> (newWidth !== width || newHeight !== height ||
+        <span class="comment">// 如果图片已经在其他地方加载可使用面积检测</span>
+        newWidth * newHeight &gt; <span class="number">1024</span>
+      ) {
+        ready.call(img);
+        onready.end = <span class="keyword">true</span>;
+      };
+    };
+    onready();
+    
+    <span class="comment">// 完全加载完毕的事件</span>
+    img.onload = <span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>
+      <span class="comment">// onload在定时器时间差范围内可能比onready快</span>
+      <span class="comment">// 这里进行检查并保证onready优先执行</span>
+      !onready.end && onready();
+    
+      load && load.call(img);
+      
+      <span class="comment">// IE gif动画会循环执行onload，置空onload即可</span>
+      img = img.onload = img.onerror = <span class="keyword">null</span>;
+    };
+
+    <span class="comment">// 加入队列中定期执行</span>
+    <span class="keyword">if</span> (!onready.end) {
+      <span class="keyword">list</span>.push(onready);
+      <span class="comment">// 无论何时只允许出现一个定时器，减少浏览器性能损耗</span>
+      <span class="keyword">if</span> (intervalId === <span class="keyword">null</span>) intervalId = setInterval(tick, <span class="number">40</span>);
+    };
+  };
+})();
+</pre></td></tr></table></figure>
+
+<p>调用例子</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+</pre></td><td class="code"><pre>imgReady(<span class="string">'http://www.google.com.hk/intl/zh-CN/images/logo_cn.png'</span>, <span class="function"><span class="keyword">function</span> <span class="params">()</span> {</span>
+  alert(<span class="string">'size ready: width='</span> + <span class="keyword">this</span>.width + <span class="string">'; height='</span> + <span class="keyword">this</span>.height);
+});
+</pre></td></tr></table></figure>
+
+  
+	</div>
+		<footer class="article-footer clearfix">
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/javascript/">javascript</a><a href="/tags/检测/">检测</a><a href="/tags/宽度/">宽度</a><a href="/tags/高度/">高度</a><a href="/tags/文件大小/">文件大小</a>
+  </div>
+
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/javascript/">javascript</a>
+</div>
+
+
+
+<div class="article-share" id="share">
+
+  <div data-url="http://purplebamboo.github.com/2014/02/09/javascript-watch-img-width-height/" data-title="javascript 上传图片 检测宽度 高度 文件大小 | blog of purplebamboo" data-tsina="null" class="share clearfix">
+  </div>
+
+</div>
+</footer>   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2014/04/08/nodejs-async/" title="javascript 异步编程总结">
+  <strong>PREVIOUS:</strong><br/>
+  <span>
+  javascript 异步编程总结</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2014/01/09/iconfont/"  title="iconfont 记录">
+ <strong>NEXT:</strong><br/> 
+ <span>iconfont 记录
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section class="comment">
+	<div class="ds-thread"></div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+  <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#第一种："><span class="toc-number">1.</span> <span class="toc-text">第一种：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#第二种："><span class="toc-number">2.</span> <span class="toc-text">第二种：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#第三种："><span class="toc-number">3.</span> <span class="toc-text">第三种：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#第四种"><span class="toc-number">4.</span> <span class="toc-text">第四种</span></a></li></ol>
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+			<li><a href="/categories/angularjs记录/" title="angularjs记录">angularjs记录<sup>9</sup></a></li>
+		
+			<li><a href="/categories/css/" title="css">css<sup>1</sup></a></li>
+		
+			<li><a href="/categories/iconfont技术/" title="iconfont技术">iconfont技术<sup>1</sup></a></li>
+		
+			<li><a href="/categories/javascript/" title="javascript">javascript<sup>15</sup></a></li>
+		
+			<li><a href="/categories/javascript/nodejs/" title="nodejs">nodejs<sup>2</sup></a></li>
+		
+			<li><a href="/categories/从零单排/" title="从零单排">从零单排<sup>1</sup></a></li>
+		
+			<li><a href="/categories/各种知识点记录/" title="各种知识点记录">各种知识点记录<sup>1</sup></a></li>
+		
+			<li><a href="/categories/javascript/源码分析/" title="源码分析">源码分析<sup>5</sup></a></li>
+		
+			<li><a href="/categories/系统环境/" title="系统环境">系统环境<sup>1</sup></a></li>
+		
+			<li><a href="/categories/angularjs记录/翻译/" title="翻译">翻译<sup>1</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			<li><a href="/tags/Filters/" title="Filters">Filters<sup>1</sup></a></li>
+		
+			<li><a href="/tags/analyze/" title="analyze">analyze<sup>1</sup></a></li>
+		
+			<li><a href="/tags/angular/" title="angular">angular<sup>2</sup></a></li>
+		
+			<li><a href="/tags/angularjs/" title="angularjs">angularjs<sup>7</sup></a></li>
+		
+			<li><a href="/tags/ast/" title="ast">ast<sup>1</sup></a></li>
+		
+			<li><a href="/tags/async/" title="async">async<sup>1</sup></a></li>
+		
+			<li><a href="/tags/border-shadow/" title="border-shadow">border-shadow<sup>1</sup></a></li>
+		
+			<li><a href="/tags/chunked/" title="chunked">chunked<sup>1</sup></a></li>
+		
+			<li><a href="/tags/class/" title="class">class<sup>1</sup></a></li>
+		
+			<li><a href="/tags/co/" title="co">co<sup>2</sup></a></li>
+		
+			<li><a href="/tags/comet/" title="comet">comet<sup>1</sup></a></li>
+		
+			<li><a href="/tags/controllers/" title="controllers">controllers<sup>1</sup></a></li>
+		
+			<li><a href="/tags/css3/" title="css3">css3<sup>1</sup></a></li>
+		
+			<li><a href="/tags/generator/" title="generator">generator<sup>1</sup></a></li>
+		
+			<li><a href="/tags/git/" title="git">git<sup>1</sup></a></li>
+		
+			<li><a href="/tags/gulp/" title="gulp">gulp<sup>1</sup></a></li>
+		
+			<li><a href="/tags/html/" title="html">html<sup>1</sup></a></li>
+		
+			<li><a href="/tags/iconfont/" title="iconfont">iconfont<sup>1</sup></a></li>
+		
+			<li><a href="/tags/javascript/" title="javascript">javascript<sup>15</sup></a></li>
+		
+			<li><a href="/tags/koa/" title="koa">koa<sup>2</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+      <li><a href="http://ued.taobao.com/" target="_blank">淘宝UED</a> </li>            <li><a href="http://www.aliued.com/" target="_blank">Alibaba国际站UED</a> </li>            <li><a href="http://china.aliued.com/" target="_blank">Alibaba中文站UED</a> </li>            <li><a href="http://ued.alipay.com/" target="_blank"> 支付宝UED</a> </li>            <li><a href="http://ued.tmall.com/" target="_blank">天猫UED</a> </li><li><a href="http://ur.alibaba-inc.com">阿里用户体验中心</a> </li>	 <li><a href="http://www.uisdc.com" target="_blank">优秀网页设计</a> </li>
+      
+    </ul>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+		<p class="copyright">Powered by <a href="http://zespia.tw/hexo/" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/A-limon/pacman" target="_blank" title="Pacman">Pacman</a> © 2015 
+		
+		<a href="http://purplebamboo.github.com" target="_blank" title="purplebamboo">purplebamboo</a>
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.1.0.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else
+    {
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      h  = $('article h2')
+      ah = $('article h2'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  if(ah.length==0){
+    t.css('display','none');
+  }else{
+    c.click(function(){
+      ta.css('display', 'block').addClass('fadeIn');
+    });
+    o.click(function(){
+      ta.css('display', 'none');
+    });
+    $(window).scroll(function(){
+      ta.css("top",Math.max(140,320-$(this).scrollTop()));
+    });
+  };
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#share"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="#textlogo" class="article-back-to-top" title="Top"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="QRcode"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="Weibo"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"cherishpeace"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+
+
+
+
+<script type="text/javascript">
+  $(function(){
+    window.onscroll = function(){
+      //console.log($(document).scrollTop()+"px")
+      $('.background-container .bg-dy2').css('backgroundPosition','0 '+$(document).scrollTop()+"px");
+    }
+
+  })
+</script>
+<div class="background-container">
+  <div class="bg-dy1">
+
+  </div>
+  <div class="bg-dy2">
+
+  </div>
+
+</div
+
+  </body>
+</html>
