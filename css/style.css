@@ -167,8 +167,8 @@ article .article-content p{font-size:105%;line-height:1.7;margin:.7em 0;}
 }article .article-content img,article .article-content video,article .article-content figure img{max-width:100%;display:block;margin:auto;height:auto;vertical-align:middle;padding-top:.5em;}
 @media only screen and (min-width: 1024px){article .article-content img,article .article-content video,article .article-content figure img{padding-top:.7em}
 }article .article-content figcaption,article .article-content .caption{text-align:center;display:block;font-size:.9em;font-weight:blod}
-article .article-content .video-container{position:relative;padding-top:56%;height:0;overflow:hidden;}
-article .article-content .video-container iframe,article .article-content .video-container object,article .article-content .video-container embed{position:absolute;top:0;left:0;width:88%;height:100%;margin-top:0}
+article .article-content .video-container{position:relative;}
+article .article-content .video-container iframe,article .article-content .video-container object,article .article-content .video-container embed{width:88%;height:100%}
 article .article-content table{width:100%;border-collapse:collapse;border-spacing:0;}
 article .article-content table th{font-weight:bold;border-bottom:3px solid #dbdbdb;padding-bottom:.5em}
 article .article-content table td{border-bottom:1px solid #dbdbdb;padding:10px 0}
