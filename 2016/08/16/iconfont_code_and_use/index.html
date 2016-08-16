@@ -1,0 +1,537 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>iconfont字体生成原理及使用技巧 | blog of purplebamboo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
+    
+    <meta name="author" content="purplebamboo">
+    
+    <meta name="description" content="好久不写文章了，罪过罪过，最近一直在忙iconfont改版的事情，各种焦头烂额。今天做了次iconfont的分享，所以整理下，发一篇水文。
+主要给大家同步下iconfont的字体生成原理，以及解答下使用上的一些比较常见的问题
+原理篇
+iconfont技术早就不是什么新技术了，我们iconfont.c">
+    
+    
+    
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/pacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/pacman.jpg">
+    
+    <link rel="stylesheet" href="/css/style.css" type="text/css">
+</head>
+
+  <body>
+    <header>
+      <div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.svg" alt="blog of purplebamboo" title="blog of purplebamboo"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="blog of purplebamboo">blog of purplebamboo</a></h1>
+				<h2 class="blog-motto">dota诚可贵，coding价更高，若为女朋友，二者皆可抛。</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">首页</a></li>
+					
+						<li><a href="/archives">归档</a></li>
+					
+						<li><a href="/categories">分类</a></li>
+					
+						<li><a href="/about">关于</a></li>
+					
+					<li>
+					
+					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="text" id="search" name="q" autocomplete="off" maxlength="20" placeholder="搜索" />
+						<input type="hidden" name="q" value="site:purplebamboo.github.com">
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/08/16/iconfont_code_and_use/" title="iconfont字体生成原理及使用技巧" itemprop="url">iconfont字体生成原理及使用技巧</a>
+  </h1>
+  <p class="article-author">By
+    
+      <a href="http://purplebamboo.github.com" title="purplebamboo">purplebamboo</a>
+    </p>
+  <p class="article-time">
+    <time datetime="2016-08-16T13:55:18.000Z" itemprop="datePublished">8月 16 2016</time>
+    更新日期:<time datetime="2016-08-16T13:59:39.000Z" itemprop="dateModified">8月 16 2016</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#原理篇"><span class="toc-number">1.</span> <span class="toc-text">原理篇</span></a></li><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#css加载自定义字体"><span class="toc-number">1.1.</span> <span class="toc-text">css加载自定义字体</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#字体内部"><span class="toc-number">1.2.</span> <span class="toc-text">字体内部</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#iconfont1-0"><span class="toc-number">1.3.</span> <span class="toc-text">iconfont1.0</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#iconfont2-0"><span class="toc-number">1.4.</span> <span class="toc-text">iconfont2.0</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#font-carrier"><span class="toc-number">1.5.</span> <span class="toc-text">font-carrier</span></a></li></ol><li class="toc-item toc-level-2"><a class="toc-link" href="#使用"><span class="toc-number">2.</span> <span class="toc-text">使用</span></a></li><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#字体冲突的问题"><span class="toc-number">2.1.</span> <span class="toc-text">字体冲突的问题</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#unicode取值的问题"><span class="toc-number">2.2.</span> <span class="toc-text">unicode取值的问题</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#字体基线的问题"><span class="toc-number">2.3.</span> <span class="toc-text">字体基线的问题</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#单个icon撑开的问题"><span class="toc-number">2.4.</span> <span class="toc-text">单个icon撑开的问题</span></a></li></ol><li class="toc-item toc-level-2"><a class="toc-link" href="#结语"><span class="toc-number">3.</span> <span class="toc-text">结语</span></a></li></ol>
+		</div>
+		
+		<p>好久不写文章了，罪过罪过，最近一直在忙iconfont改版的事情，各种焦头烂额。今天做了次iconfont的分享，所以整理下，发一篇水文。</p>
+<p>主要给大家同步下iconfont的字体生成原理，以及解答下使用上的一些比较常见的问题</p>
+<h2 id="原理篇">原理篇</h2>
+<p>iconfont技术早就不是什么新技术了，我们iconfont.cn也已经做了快三年了。后来陆陆续续的来了很多新同学，可能只知道用这个，却不知道它内部的原理，这里给大家同步下，知道了原理可以更好的去使用。</p>
+<h3 id="css加载自定义字体">css加载自定义字体</h3>
+<p>首先前端都知道我们可以定义web上面文字的fontfamily。</p>
+<figure class="highlight css"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+</pre></td><td class="code"><pre>css:
+
+.test{
+ font-size: 16px;
+ font-family: '微软雅黑';
+}
+
+html:
+
+&lt;span class="test"&gt;iconfont字体原理&lt;/span&gt;
+</pre></td></tr></table></figure>
+
+<p>但是这种情况下我们只能用系统默认的一些字体，限制比较大。比如微软雅黑就是windows下面才有。</p>
+<p>其实css是可以自定义字体的，所以我们可以加载自己的字体。</p>
+<p>使用 @font-face 定义一个字体family：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+</pre></td><td class="code"><pre>css<span class="value">:
+
+@font-face {
+  font-family: <span class="string">'iconfont'</span>;</span>
+  src<span class="value">: url(<span class="string">'//at.alicdn.com/t/font_1453702746_9938898.eot'</span>);</span> <span class="comment">/* IE9*/</span>
+  src<span class="value">: url(<span class="string">'//at.alicdn.com/t/font_1453702746_9938898.eot?#iefix'</span>) format(<span class="string">'embedded-opentype'</span>), /* IE6-IE8 */
+  url(<span class="string">'//at.alicdn.com/t/font_1453702746_9938898.woff'</span>) format(<span class="string">'woff'</span>), /* chrome、firefox */
+  url(<span class="string">'//at.alicdn.com/t/font_1453702746_9938898.ttf'</span>) format(<span class="string">'truetype'</span>), /* chrome、firefox、opera、Safari, Android, iOS <span class="number">4.2</span>+*/
+  url(<span class="string">'//at.alicdn.com/t/font_1453702746_9938898.svg#iconfont'</span>) format(<span class="string">'svg'</span>);</span> <span class="comment">/* iOS 4.1- */</span>
+}
+
+
+<span class="class">.test</span>{
+ <span class="attribute">font-size</span><span class="value">: <span class="number">16</span>px;</span>
+ <span class="attribute">font-family</span><span class="value">: <span class="string">'iconfont'</span>;</span>
+}
+
+<span class="tag">html</span><span class="value">:
+
+&lt;span class=<span class="string">"test"</span>&gt;iconfont字体原理&lt;/span&gt;</span>
+</pre></td></tr></table></figure>
+
+<p>这样我们就可以用自定义字体渲染这些文字了。<br>每一个字都有对应的unicode。比如我们在web上输入<code>我</code>跟输入<code>&amp;#x6211;</code>是一样的。浏览器会自动帮你找到对应的图形去渲染。</p>
+<blockquote>
+<p>当然因为兼容性的问题，不同的浏览器需要加载不同格式的字体，所以我们要同时支持四种字体。</p>
+</blockquote>
+<h3 id="字体内部">字体内部</h3>
+<p>我们来看下一个字体的样子。</p>
+<p>我们可以通过一些软件打开字体，比如fontforge，fontlab。</p>
+<p>比如下面的方正大草字体：</p>
+<p><img src="http://alp.alicdn.com/1471379333241.png" alt="方正"></p>
+<p>我们打开看下：</p>
+<p><img src="http://alp.alicdn.com/1471379393101.png" alt="方正"></p>
+<p>可以看到<code>我</code>这个字对应的的图形就是我们在网页上看到的样子。另外注意左上角的unicode。是6211，也就是我们的另一种表现形式。</p>
+<p>再双击可以看到我这个图形的样子:</p>
+<p><img src="http://alp.alicdn.com/1471379343171.png" alt="方正"></p>
+<p>其实就是一些路径。而这个路径可以用ai，ps，sketch等等来画，画完粘贴到这里。</p>
+<h3 id="iconfont1-0">iconfont1.0</h3>
+<p>所以我们就可以做一些事情了，我们可以去改造字体，把一个字对应的图形换成我们设计师设计的样子，处理好兼容性就成了我们iconfont的1.0。</p>
+<p>当年iconfont1.0是怎样的流程呢：</p>
+<p><img src="http://alp.alicdn.com/1471380111315.png" alt="iconfont1.0"></p>
+<p>由设计师手动修改ttf字体对应的图形，我们人工转换出另外四种字体。<br>这样前台就可以用unicode去引用，就是我们第一代的iconfont的原理。这个成本有点大。</p>
+<h3 id="iconfont2-0">iconfont2.0</h3>
+<p>其实我们注意到里面有个svg的字体。你用文本编辑器打开会发现他是xml格式的，每个字的图形对应了一个路径。这个路径就是我们svg里面的path对应的序列。</p>
+<p><img src="http://alp.alicdn.com/1471380485040.png" alt="svg font"></p>
+<p>好了于是我们有了一个全新的思路，由设计师上传svg，我们存储下来，然后大家自由组合，由平台拼出对应的svg字体，然后再转换到不同的其他格式的字体。</p>
+<p><img src="http://alp.alicdn.com/1471380113401.png" alt="iconfont2.0"></p>
+<p>这里面的难点主要在，我们要分析svg。转换出对应的path序列。用户上传的svg格式太多，大小不一。要做各种转换，这里不展开了。</p>
+<p>这就是我们的iconfont2.0，也就是目前线上跑的版本。</p>
+<h3 id="font-carrier">font-carrier</h3>
+<p>当然这一切都封装好了，做了一个工具库，<a href="http://purplebamboo.github.io/font-carrier/" target="_blank">font-carrier</a>。</p>
+<p><img src="http://alp.alicdn.com/1471380754109.png" alt="font-carrier"></p>
+<p>语法比较简单，可以直接往一个字体里面添加svg，也可以拿到某个字对应的svg，最终导出四种兼容字体。</p>
+<p>知道了原理，以后大家调试就比较简单了，直接自己打开对应的svg字体，去看看你们对应的unicode的图形是不是有问题就行了,下面我们说说使用上一些常见的问题。</p>
+<h2 id="使用">使用</h2>
+<p>下面就可能会遇到的一些问题，做些简单的解答。</p>
+<h3 id="字体冲突的问题">字体冲突的问题</h3>
+<p>iconfont.cn平台给出的font-face定义默认都是 <code>iconfont</code>的<code>fontfamily</code>，建议大家改掉，避免与其他项目字体（比如引用的公共组件里面的字体）冲突。</p>
+<p><img src="http://alp.alicdn.com/1471380985155.png" alt="chongtu"></p>
+<h3 id="unicode取值的问题">unicode取值的问题</h3>
+<p>unicode其实没有特别的规定。</p>
+<p>字体有几个<a href="https://en.wikipedia.org/wiki/Private_Use_Areas" target="_blank">私有平面</a>:</p>
+<p><img src="http://alp.alicdn.com/1471381668684.png" alt="pingm"></p>
+<p>很早以前我们使用的五位数的，结果现在chrome支持不太好，后面建议大家使用第一个平面里的。</p>
+<p>这样用的好处是，字体没有加载的时候，显示的是一个框 <code>口</code>。而不是乱码。</p>
+<h3 id="字体基线的问题">字体基线的问题</h3>
+<p>这是个艰难的决定。一脸无辜.jpg</p>
+<p>中文字体没有严格意义上的基线。我们参考了方正字体的基线：<br><img src="https://img.alicdn.com/tps/TB1GfUJJFXXXXabXpXXXXXXXXXX-598-574.png" alt="mm"></p>
+<p>中间的线是baseline,这个就是0这条线。对于一个字体来说，可以设置上边界（ascent）跟下边界（descent）。比如我们iconfont设置的是812，-212。</p>
+<p>所以如果我们的图标这么设计：</p>
+<p><img src="https://img.alicdn.com/tps/TB1e_n1JFXXXXbeXXXXXXXXXXXX-802-637.png" alt="mm"></p>
+<p>那么是可以基本对齐的。</p>
+<p>但是我们发现用户上传图标时喜欢撑满整个框：</p>
+<p><img src="https://img.alicdn.com/tps/TB1.5DIJFXXXXbCXFXXXXXXXXXX-599-587.png" alt="mm"></p>
+<p>可以想像下，这种图标跟字体一起展现，就会变得偏下了。</p>
+<p>所以在支付宝的要求下，我们修改了基线。当我们把下偏移量设置的比较小，这样基线相对就会在比较下面的位置。 这样就算用户上传的图标撑满也没关系了，因为普通的汉子是差不多三分之一，我们迁就一下，偏少一点，这样基本就能对齐了。</p>
+<p>于是带来了一群不明真相的群众的吐槽。但是又不得不做这个事情。</p>
+<h3 id="单个icon撑开的问题">单个icon撑开的问题</h3>
+<p>有的时候设计师设计的icon会有多余的点，也可能当前上传的svg边界太大，于是导致我们的整个字体被撑开。</p>
+<p>表现如下：</p>
+<p><img src="http://alp.alicdn.com/1471382640883.png" alt="bx"></p>
+<p>可以看到由于最左边的icon把字体撑开了。导致大家展示除了问题，表现在页面上是：</p>
+<p><img src="http://alp.alicdn.com/1471382773166.png" alt="zy"></p>
+<p>注意看里面的阴影，由于被撑开，导致它的边界是不对的。我们删掉这个图标再生成字体就好了。</p>
+<p>当然这里还有各种问题，字体清晰度，icon上传svg规范问题，字体跨域问题，锯齿问题等等。这些平台基本都可以内部优化掉了，就不展开了。</p>
+<h2 id="结语">结语</h2>
+<p>iconfont解决了我们以前大量使用图片带来的种种问题，但是也有自身的各种缺陷。比如不支持多色就是一个最大的致命伤，另外在不同浏览器下的表现不同，需要做各种兼容。</p>
+<p>不久的将来iconfont应该会被svg symbol技术替换。可以参考这篇<a href="https://zhuanlan.zhihu.com/p/20753791?refer=FrontendMagazine" target="_blank">文章</a>。<br>淘积木目前接入了webfont，直接用svg当作字体展现，实时预览，也是一种新的突破。</p>
+<p>iconfont.cn平台目前也在做相关的改造，期待带来新一轮的字体使用方式变革。</p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/iconfont/">iconfont</a>
+  </div>
+
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/iconfont技术/">iconfont技术</a>
+</div>
+
+
+
+<div class="article-share" id="share">
+
+  <div data-url="http://purplebamboo.github.com/2016/08/16/iconfont_code_and_use/" data-title="iconfont字体生成原理及使用技巧 | blog of purplebamboo" data-tsina="null" class="share clearfix">
+  </div>
+
+</div>
+</footer>   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+
+<div class="next">
+<a href="/2016/04/21/about-partial-refresh/"  title="局部刷新模板那些事">
+ <strong>NEXT:</strong><br/> 
+ <span>局部刷新模板那些事
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section class="comment">
+	<div class="ds-thread"></div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+  <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#原理篇"><span class="toc-number">1.</span> <span class="toc-text">原理篇</span></a></li><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#css加载自定义字体"><span class="toc-number">1.1.</span> <span class="toc-text">css加载自定义字体</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#字体内部"><span class="toc-number">1.2.</span> <span class="toc-text">字体内部</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#iconfont1-0"><span class="toc-number">1.3.</span> <span class="toc-text">iconfont1.0</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#iconfont2-0"><span class="toc-number">1.4.</span> <span class="toc-text">iconfont2.0</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#font-carrier"><span class="toc-number">1.5.</span> <span class="toc-text">font-carrier</span></a></li></ol><li class="toc-item toc-level-2"><a class="toc-link" href="#使用"><span class="toc-number">2.</span> <span class="toc-text">使用</span></a></li><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#字体冲突的问题"><span class="toc-number">2.1.</span> <span class="toc-text">字体冲突的问题</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#unicode取值的问题"><span class="toc-number">2.2.</span> <span class="toc-text">unicode取值的问题</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#字体基线的问题"><span class="toc-number">2.3.</span> <span class="toc-text">字体基线的问题</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#单个icon撑开的问题"><span class="toc-number">2.4.</span> <span class="toc-text">单个icon撑开的问题</span></a></li></ol><li class="toc-item toc-level-2"><a class="toc-link" href="#结语"><span class="toc-number">3.</span> <span class="toc-text">结语</span></a></li></ol>
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+			<li><a href="/categories/angularjs记录/" title="angularjs记录">angularjs记录<sup>9</sup></a></li>
+		
+			<li><a href="/categories/css/" title="css">css<sup>1</sup></a></li>
+		
+			<li><a href="/categories/iconfont技术/" title="iconfont技术">iconfont技术<sup>2</sup></a></li>
+		
+			<li><a href="/categories/javascript/" title="javascript">javascript<sup>18</sup></a></li>
+		
+			<li><a href="/categories/javascript/nodejs/" title="nodejs">nodejs<sup>2</sup></a></li>
+		
+			<li><a href="/categories/从零单排/" title="从零单排">从零单排<sup>1</sup></a></li>
+		
+			<li><a href="/categories/各种知识点记录/" title="各种知识点记录">各种知识点记录<sup>1</sup></a></li>
+		
+			<li><a href="/categories/javascript/源码分析/" title="源码分析">源码分析<sup>7</sup></a></li>
+		
+			<li><a href="/categories/系统环境/" title="系统环境">系统环境<sup>1</sup></a></li>
+		
+			<li><a href="/categories/angularjs记录/翻译/" title="翻译">翻译<sup>1</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			<li><a href="/tags/Filters/" title="Filters">Filters<sup>1</sup></a></li>
+		
+			<li><a href="/tags/analyze/" title="analyze">analyze<sup>1</sup></a></li>
+		
+			<li><a href="/tags/angular/" title="angular">angular<sup>2</sup></a></li>
+		
+			<li><a href="/tags/angularjs/" title="angularjs">angularjs<sup>7</sup></a></li>
+		
+			<li><a href="/tags/ast/" title="ast">ast<sup>1</sup></a></li>
+		
+			<li><a href="/tags/async/" title="async">async<sup>1</sup></a></li>
+		
+			<li><a href="/tags/border-shadow/" title="border-shadow">border-shadow<sup>1</sup></a></li>
+		
+			<li><a href="/tags/chunked/" title="chunked">chunked<sup>1</sup></a></li>
+		
+			<li><a href="/tags/class/" title="class">class<sup>1</sup></a></li>
+		
+			<li><a href="/tags/co/" title="co">co<sup>2</sup></a></li>
+		
+			<li><a href="/tags/comet/" title="comet">comet<sup>1</sup></a></li>
+		
+			<li><a href="/tags/controllers/" title="controllers">controllers<sup>1</sup></a></li>
+		
+			<li><a href="/tags/css3/" title="css3">css3<sup>1</sup></a></li>
+		
+			<li><a href="/tags/generator/" title="generator">generator<sup>1</sup></a></li>
+		
+			<li><a href="/tags/git/" title="git">git<sup>1</sup></a></li>
+		
+			<li><a href="/tags/gulp/" title="gulp">gulp<sup>1</sup></a></li>
+		
+			<li><a href="/tags/html/" title="html">html<sup>1</sup></a></li>
+		
+			<li><a href="/tags/iconfont/" title="iconfont">iconfont<sup>2</sup></a></li>
+		
+			<li><a href="/tags/javascript/" title="javascript">javascript<sup>15</sup></a></li>
+		
+			<li><a href="/tags/koa/" title="koa">koa<sup>2</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+      <li><a href="http://ued.taobao.com/" target="_blank">淘宝UED</a> </li>            <li><a href="http://www.aliued.com/" target="_blank">Alibaba国际站UED</a> </li>            <li><a href="http://china.aliued.com/" target="_blank">Alibaba中文站UED</a> </li>            <li><a href="http://ued.alipay.com/" target="_blank"> 支付宝UED</a> </li>            <li><a href="http://ued.tmall.com/" target="_blank">天猫UED</a> </li><li><a href="http://ur.alibaba-inc.com">阿里用户体验中心</a> </li>	 <li><a href="http://www.uisdc.com" target="_blank">优秀网页设计</a> </li>
+      
+    </ul>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+		<p class="copyright">Powered by <a href="http://zespia.tw/hexo/" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/A-limon/pacman" target="_blank" title="Pacman">Pacman</a> © 2016 
+		
+		<a href="http://purplebamboo.github.com" target="_blank" title="purplebamboo">purplebamboo</a>
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.1.0.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else
+    {
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      h  = $('article h2')
+      ah = $('article h2'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  if(ah.length==0){
+    t.css('display','none');
+  }else{
+    c.click(function(){
+      ta.css('display', 'block').addClass('fadeIn');
+    });
+    o.click(function(){
+      ta.css('display', 'none');
+    });
+    $(window).scroll(function(){
+      ta.css("top",Math.max(140,320-$(this).scrollTop()));
+    });
+  };
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#share"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="#textlogo" class="article-back-to-top" title="Top"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="QRcode"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="Weibo"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"cherishpeace"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+
+
+
+
+<script type="text/javascript">
+  $(function(){
+    window.onscroll = function(){
+      //console.log($(document).scrollTop()+"px")
+      $('.background-container .bg-dy2').css('backgroundPosition','0 '+$(document).scrollTop()+"px");
+    }
+
+  })
+</script>
+<div class="background-container">
+  <div class="bg-dy1">
+
+  </div>
+  <div class="bg-dy2">
+
+  </div>
+
+</div
+
+  </body>
+</html>
